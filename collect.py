@@ -32,12 +32,15 @@ def refresh():
                     raise ValueError("missing token balances")
                 section = {**result, "asOf": now}
             elif key == "trades":
-                section = trades.collect(old, now - YEAR, now)
+                cutoff = now - YEAR
+                previous = old if old.get("since", cutoff) <= cutoff else {}
+                section = trades.collect(previous, cutoff, now)
             else:
                 cutoff = now - YEAR
-                start_at = max(cutoff, old.get("asOf", cutoff) - 3600)
-                rows, start = assets.burns(old.get("rows", []), start_at)
-                start = max(cutoff, min(start, old.get("since", start)))
+                previous = old if old.get("since", cutoff) <= cutoff else {}
+                start_at = max(cutoff, previous.get("asOf", cutoff) - 3600)
+                rows, start = assets.burns(previous.get("rows", []), start_at)
+                start = max(cutoff, min(start, previous.get("since", start)))
                 section = {"rows": [r for r in rows if r["time"] >= cutoff], "since": start, "asOf": now}
             snapshot[key] = section
             print(key, "OK", len(section.get("rows", section.get("holders", []))), flush=True)
