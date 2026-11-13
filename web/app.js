@@ -160,10 +160,10 @@ function format(n,d=2){return Number(n).toLocaleString(lang,{maximumFractionDigi
 function stamp(s){return s?new Date(s*1000).toLocaleString(lang,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",year:"numeric"}):"—"}
 function short(w){return w?w.slice(0,6)+"…"+w.slice(-5):"—"}
 // Use a user-friendly TON address for explorer links and the visible short label.
-function explorerAddress(raw) {
+function explorerAddress(raw,bounceable=false) {
   if (!/^(-1|0):[0-9a-f]{64}$/i.test(raw)) return raw;
   const [chain, hex] = raw.split(":");
-  const bytes = [0x51, Number(chain) & 255, ...hex.match(/../g).map(byte => parseInt(byte,16))];
+  const bytes = [bounceable?0x11:0x51, Number(chain) & 255, ...hex.match(/../g).map(byte => parseInt(byte,16))];
   let crc = 0;
   for (const byte of bytes) {
     crc ^= byte << 8;
@@ -190,6 +190,45 @@ function hasDomainBadge(wallet){
   const record=snapshot.domains?.byWallet?.[wallet];
   return Boolean(record?.digits?.length);
 }
+
+const authorCollection="EQAhaFPX9zIBVYe_vfy3dudCkxJDjSoMjj59KndtHKcqo3iy";
+const projectBadgeDefs=[
+  ["staking","","https://jvault.xyz/staking/v2/stake/LUDOMAN"],
+  ["author","author NFT",""],
+  ["vnuk","VNUK","https://t.me/mRvnukICHlife"],
+  ["joystick","Joystick","https://t.me/joystickpro"],
+  ["phoenix","Phoenix","https://t.me/PHXPW"]
+];
+function appendProjectBadges(wrapper,wallet){
+  const data=snapshot.badges?.sources;
+  if(!data)return;
+  const badges=el("span",undefined,"projectBadges");
+  function match(key){
+    const source=data[key];
+    return source?.asOf>=Date.now()/1000-24*3600 && source.wallets?.[wallet];
+  }
+  for(const [key,label,url] of projectBadgeDefs){
+    const value=match(key)||((key==="vnuk"||key==="joystick")&&match(key+"Nft"));
+    if(!value)continue;
+    const target=key==="author"
+      ?"https://getgems.io/collection/"+authorCollection+"/"+explorerAddress(value,true)
+      :url;
+    const badge=link(target,"");
+    badge.className="projectBadge "+key;
+    if(key!=="author"){
+      const icon=$("badge-icon-"+key).content.firstElementChild.cloneNode();
+      badge.append(icon);
+    }
+    if(label)badge.append(el("span",label));
+    if(key==="staking"){
+      badge.title=lang==="ru"?"JVault · от 500 000 LUDOMAN":"JVault · 500,000+ LUDOMAN";
+      badge.setAttribute("aria-label",badge.title);
+    }
+    badges.append(badge);
+  }
+  if(badges.childElementCount)wrapper.append(badges);
+}
+
 function walletIdentity(raw,name,kind,latest=false){
   const wrapper=el("span",undefined,"walletIdentity");
   const address=addr(raw,typeof name==="string" && /^[a-z0-9-]+\.ton$/i.test(name) ? name : null);
@@ -214,6 +253,7 @@ function walletIdentity(raw,name,kind,latest=false){
       wrapper.append(rest);
     }
   }
+  appendProjectBadges(wrapper,raw);
   return wrapper;
 }
 function lastTradeByWallet(){

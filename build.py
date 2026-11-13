@@ -15,5 +15,8 @@ for marker, filename in (
     template = template.replace(marker, (web / filename).read_text())
 art = base64.b64encode((web / "ludoman.webp").read_bytes()).decode("ascii")
 template = template.replace("__LUDOMAN_ART__", "data:image/webp;base64," + art)
+for key in ("staking", "vnuk", "joystick", "phoenix"):
+    icon = base64.b64encode((root / "web" / f"badge-{key}.webp").read_bytes()).decode("ascii")
+    template = template.replace(f"__BADGE_{key.upper()}__", "data:image/webp;base64," + icon)
 embedded = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).replace("<", r"\u003c")
 (root / "index.html").write_text(template.replace("__SNAPSHOT__", embedded))
