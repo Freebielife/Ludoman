@@ -67,11 +67,12 @@ def refresh():
             errors.append("zeroBurns")
             print("Zero-address burns:", error, flush=True)
         snapshot["identity"] = observatory.identity(snapshot, now)
-        try:
-            snapshot["vesting"] = observatory.vesting(now)
-        except Exception as error:
-            errors.append("vesting")
-            print("TonRaffles locks:", error, flush=True)
+        for key, fetch_supply in (("vesting", observatory.vesting), ("staking", observatory.staking)):
+            try:
+                snapshot[key] = fetch_supply(now)
+            except Exception as error:
+                errors.append(key)
+                print(f"{key} FAILED:", error, flush=True)
         snapshot.update(schema=1, token=assets.MASTER, updated=now, errors=errors)
         DATA.parent.mkdir(exist_ok=True)
         save(DATA, snapshot)

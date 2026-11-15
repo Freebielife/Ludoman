@@ -91,17 +91,12 @@ def decode_address(item):
     return f"{int.from_bytes(workchain, 'big', signed=True)}:{(value >> 5) & ((1 << 256) - 1):064x}"
 
 
-def position_state(address):
+def position(address):
     result = fetch(f"/blockchain/accounts/{address}/methods/get_storage_data")
     stack = result["stack"]
     if not result["success"] or len(stack) != 15 or decode_address(stack[0]) != POOL_RAW:
         raise ValueError("Unexpected JVault position contract")
-    return decode_address(stack[1]), int(stack[3]["num"], 16), int(stack[7]["num"], 16)
-
-
-def position(address):
-    owner, active, queued = position_state(address)
-    return owner, active + queued
+    return decode_address(stack[1]), int(stack[3]["num"], 16) + int(stack[7]["num"], 16)
 
 
 def discover(previous):
@@ -150,7 +145,7 @@ def stake(previous):
         owner, total = position(address)
         totals[owner] += total
     qualifying = {owner: True for owner, amount in totals.items() if amount >= 500_000 * 10**9}
-    return {"totalPrincipal": str(sum(totals.values())), "wallets": qualifying, "positions": sorted(addresses), "cursor": str(cursor)}
+    return {"wallets": qualifying, "positions": sorted(addresses), "cursor": str(cursor)}
 
 
 def refresh(previous, now):

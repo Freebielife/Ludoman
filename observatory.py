@@ -174,3 +174,85 @@ def vesting(now):
             amounts.append(min(amount, int(values[0]["num"], 16)))
             time.sleep(1.05)
     return {"asOf": now, "reserved": token_amount(sum(amounts)), "reported": token_amount(expected)}
+
+
+def period_balances(cell):
+    """Read the Coins value at the start of each 32-bit lock-period entry."""
+    boc = bytes.fromhex(cell)
+    if boc[:4] != bytes.fromhex("b5ee9c72") or not 1 <= boc[4] <= 4 or not 1 <= boc[5] <= 4:
+        raise ValueError("Unexpected lock periods BOC header")
+    ref_size, offset_size = boc[4:6]
+    pos = 6
+
+    def read(length):
+        nonlocal pos
+        end = pos + length
+        if end > len(boc):
+            raise ValueError("Truncated lock periods BOC")
+        chunk = boc[pos:end]
+        pos = end
+        return chunk
+
+    def integer(length):
+        return int.from_bytes(read(length), "big")
+
+    count, roots, absent = (integer(ref_size) for _ in range(3))
+    size = integer(offset_size)
+    if not 1 <= count <= 256 or roots != 1 or absent or integer(ref_size) != 0 or size != len(boc) - pos:
+        raise ValueError("Unexpected lock periods BOC structure")
+    cells = []
+    for i in range(count):
+        refs, descriptor = read(2)
+        if refs not in (0, 2):
+            raise ValueError("Unexpected lock periods cell")
+        bits = "".join(f"{byte:08b}" for byte in read((descriptor + 1) // 2))
+        if descriptor % 2:
+            bits = bits[:bits.rindex("1")]
+        children = [integer(ref_size) for _ in range(refs)]
+        if any(child <= i or child >= count for child in children):
+            raise ValueError("Invalid lock period cell reference")
+        cells.append((bits, children))
+    if pos != len(boc):
+        raise ValueError("Unexpected data after lock period cells")
+
+    def walk(index, remaining):
+        bits, refs = cells[index]
+        if bits[0] == "0":
+            length = bits[1:].index("0")
+            skip = length * 2 + 2
+        else:
+            width = remaining.bit_length()
+            repeated = bits[1] == "1"
+            offset = 3 if repeated else 2
+            length = int(bits[offset:offset + width] or "0", 2)
+            skip = offset + width + (0 if repeated else length)
+        if length > remaining or len(bits) < skip:
+            raise ValueError("Invalid lock period key")
+        remaining -= length
+        if remaining:
+            if len(refs) != 2 or len(bits) != skip:
+                raise ValueError("Invalid lock period branch")
+            for child in refs:
+                yield from walk(child, remaining - 1)
+        else:
+            if refs:
+                raise ValueError("Invalid lock period leaf")
+            balance_length = 8 * int(bits[skip:skip + 4], 2)
+            if len(bits) < skip + 4 + balance_length:
+                raise ValueError("Truncated lock period balance")
+            yield int(bits[skip + 4:skip + 4 + balance_length] or "0", 2)
+
+    return list(walk(0, 32))
+
+
+def staking(now):
+    result = fetch(f"/blockchain/accounts/{POOL_RAW}/methods/get_storage_data")
+    stack = result["stack"]
+    if not result["success"] or len(stack) != 19 or int(stack[1]["num"], 16) != 216:
+        raise ValueError("Unexpected Ludoman staking pool")
+    # Period balances include requested withdrawals until the payout is sent.
+    principal = sum(period_balances(stack[13]["cell"]))
+    active = int(stack[6]["num"], 16)
+    if principal < active:
+        raise ValueError("Lock-period principal below active JVault TVL")
+    return {"asOf": now, "principal": token_amount(principal), "active": token_amount(active)}

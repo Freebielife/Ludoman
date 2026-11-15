@@ -455,7 +455,7 @@ function ranks(){
 }
 function renderSupply(){
   const frozen=snapshot.vesting?.reserved;
-  const principal=snapshot.badges?.sources?.staking?.totalPrincipal;
+  const principal=snapshot.staking?.principal;
   $("frozenTotal").textContent=frozen==null?"—":format(frozen,2)+" LUDOMAN";
   $("stakingTotal").textContent=principal==null?"—":format(Number(principal)/1e9,2)+" LUDOMAN";
 }
