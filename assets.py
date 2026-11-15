@@ -11,7 +11,7 @@ API = "https://tonapi.io/v2"
 MASTER = "EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb"
 MASTER_RAW = "0:db2a2857319b8d7e5ee6ed570dac72326186200853e171c22a34dfe870d9fe3c"
 RAW_ADDRESS = re.compile(r"-?[0-9]+:[0-9a-f]{64}")
-DOMAIN = re.compile(r"[a-z0-9-]+\.ton")
+DOMAIN = re.compile(r"(?!(?:[a-z0-9-]+\.)*socool\.ton$)(?:[a-z0-9-]+\.)+ton")
 BURN_NOTIFICATION = "0x7bdd97de"
 HOLDER_LIMIT = 20
 
@@ -44,13 +44,15 @@ def token_amount(units):
     return (f"{whole}.{fraction:09d}").rstrip("0").rstrip(".")
 
 
-def resolved_domain(owner):
+def resolved_domain(owner, *, strict=False):
     name = (owner.get("name") or "").lower()
     if not DOMAIN.fullmatch(name):
         return None
     try:
         record = fetch("/dns/" + quote(name, safe="") + "/resolve", attempts=1)
-    except (HTTPError, URLError, TimeoutError, ConnectionError):
+    except (HTTPError, URLError, TimeoutError, ConnectionError) as error:
+        if strict and not (isinstance(error, HTTPError) and error.code == 404):
+            raise
         return None
     wallet = record.get("wallet") or {}
     return name if str(wallet.get("address")).lower() == raw_address(owner["address"]) else None

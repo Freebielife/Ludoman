@@ -7,6 +7,7 @@ from pathlib import Path
 import assets
 import badges
 import domains
+import observatory
 import trades
 
 ROOT = Path(__file__).resolve().parent
@@ -37,12 +38,9 @@ def refresh():
                 previous = old if old.get("since", cutoff) <= cutoff else {}
                 section = trades.collect(previous, cutoff, now)
             else:
-                cutoff = now - YEAR
-                previous = old if old.get("since", cutoff) <= cutoff else {}
-                start_at = max(cutoff, previous.get("asOf", cutoff) - 3600)
-                rows, start = assets.burns(previous.get("rows", []), start_at)
-                start = max(cutoff, min(start, previous.get("since", start)))
-                section = {"rows": [r for r in rows if r["time"] >= cutoff], "since": start, "asOf": now}
+                start_at = max(1, old["asOf"] - 3600) if old.get("since") == 1 else 1
+                rows, _ = assets.burns(old.get("rows", []), start_at)
+                section = {"rows": rows, "since": 1, "asOf": now}
             snapshot[key] = section
             print(key, "OK", len(section.get("rows", section.get("holders", []))), flush=True)
         except Exception as error:
@@ -63,6 +61,17 @@ def refresh():
         snapshot["badges"] = badges.refresh(snapshot.get("badges", {}), now)
         if snapshot["badges"]["failed"]:
             errors.append("badges")
+        try:
+            snapshot["zeroBurns"] = observatory.zero_burns(snapshot.get("zeroBurns", {}), now)
+        except Exception as error:
+            errors.append("zeroBurns")
+            print("Zero-address burns:", error, flush=True)
+        snapshot["identity"] = observatory.identity(snapshot, now)
+        try:
+            snapshot["vesting"] = observatory.vesting(now)
+        except Exception as error:
+            errors.append("vesting")
+            print("TonRaffles locks:", error, flush=True)
         snapshot.update(schema=1, token=assets.MASTER, updated=now, errors=errors)
         DATA.parent.mkdir(exist_ok=True)
         save(DATA, snapshot)

@@ -16,6 +16,7 @@ TOKENS = {
     "phoenix": ("EQABtSLSzrAOISWPfIjBl2VmeStkM1eHaPrUxRTj8mY-9h43", True),
 }
 COLLECTIONS = {
+    "blueNft": "EQBmoucipH0QT_qpd361W-9zUlyFsSl1FD1GIY0AfXdpPQW8",
     "author": AUTHOR,
     "vnukNft": "EQBHe9CCEGOW6xpnLEqUx3bJ3lYgaCXmlokE5xPckXtY3f4X",
     "joystickNft": "EQCZIvCtiPmacSrvOUvsJE7P5si6letm0Bo0EYMl5c5F-cbQ",
@@ -90,12 +91,17 @@ def decode_address(item):
     return f"{int.from_bytes(workchain, 'big', signed=True)}:{(value >> 5) & ((1 << 256) - 1):064x}"
 
 
-def position(address):
+def position_state(address):
     result = fetch(f"/blockchain/accounts/{address}/methods/get_storage_data")
     stack = result["stack"]
     if not result["success"] or len(stack) != 15 or decode_address(stack[0]) != POOL_RAW:
         raise ValueError("Unexpected JVault position contract")
-    return decode_address(stack[1]), int(stack[3]["num"], 16) + int(stack[7]["num"], 16)
+    return decode_address(stack[1]), int(stack[3]["num"], 16), int(stack[7]["num"], 16)
+
+
+def position(address):
+    owner, active, queued = position_state(address)
+    return owner, active + queued
 
 
 def discover(previous):
@@ -144,7 +150,7 @@ def stake(previous):
         owner, total = position(address)
         totals[owner] += total
     qualifying = {owner: True for owner, amount in totals.items() if amount >= 500_000 * 10**9}
-    return {"wallets": qualifying, "positions": sorted(addresses), "cursor": str(cursor)}
+    return {"totalPrincipal": str(sum(totals.values())), "wallets": qualifying, "positions": sorted(addresses), "cursor": str(cursor)}
 
 
 def refresh(previous, now):
