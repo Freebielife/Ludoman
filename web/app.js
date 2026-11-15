@@ -457,7 +457,7 @@ function renderSupply(){
   const frozen=snapshot.vesting?.reserved;
   const principal=snapshot.staking?.principal;
   $("frozenTotal").textContent=frozen==null?"—":format(frozen,2)+" LUDOMAN";
-  $("stakingTotal").textContent=principal==null?"—":format(Number(principal)/1e9,2)+" LUDOMAN";
+  $("stakingTotal").textContent=principal==null?"—":format(principal,2)+" LUDOMAN";
 }
 function render(){document.documentElement.lang=lang;document.querySelectorAll("[data-t]").forEach(n=>n.textContent=t(n.dataset.t));for(const l of ["ru","en"]){$(l).classList.toggle("on",l===lang);$(l).setAttribute("aria-pressed",l===lang);$(l).onclick=()=>{lang=l;try{localStorage.setItem("ludoman-lang",l)}catch{}render()}}
  $("currency").setAttribute("aria-label",lang==="ru"?"Валюта капитализации":"Market cap currency");
@@ -491,7 +491,13 @@ function renderSyncStatus(){
 }
 const refresh=createSnapshotLoader({
  getSnapshot:()=>snapshot,
- applySnapshot:next=>{snapshot=next;render()},
+ applySnapshot:next=>{
+  for(const key of ["zeroBurns","identity","vesting","staking"]){
+    if(snapshot[key]&&(!next[key]||snapshot[key].asOf>next[key].asOf))next[key]=snapshot[key];
+  }
+  snapshot=next;
+  render();
+ },
  onState:state=>{syncState={...syncState,...state};renderSyncStatus()}
 });
 $('refreshData').onclick=()=>refresh();
