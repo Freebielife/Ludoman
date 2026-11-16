@@ -32,7 +32,8 @@ const texts = {
     "badgeBurn": "Сожжено от 1 000 токенов проекта, включая переводы на нулевой адрес.",
     "badgeArni": "Более 50 000 ARNI.",
     "badgeNapiwas": "От 1 000 000 NAPIWAS.",
-    "badgeDigits": "Владение четырёхзначным .ton-доменом.",
+    "badgeDnsLinked": "Привязан в TON DNS",
+    "badgeDigits": "Четырёхзначный .ton-домен в кошельке или подтверждённая привязка в TON DNS.",
     "badgeSub": "Владение субдоменом .socool.ton.",
     "blueCollection":"Открыть NFT-коллекцию","activated":"Активация","burnBadge":"Сожжено от 1 000 токенов","toZero":"На нулевой адрес","operationDetails":"Подробности операции","supplyTitle":"Заморозка и стейкинг","supplyFrozen":"Заморожено","supplyFrozenHint":"Остатки в контрактах TonRaffles","supplyStaked":"В стейкинге","supplyStakedHint":"Позиции JVault, включая заявки на вывод",
     "intro": "Сделки, держатели и сжигания $LUDOMAN в сети TON.",
@@ -138,7 +139,8 @@ const texts = {
     "badgeBurn": "At least 1,000 project tokens burned, including transfers to the zero address.",
     "badgeArni": "Over 50,000 ARNI.",
     "badgeNapiwas": "At least 1,000,000 NAPIWAS.",
-    "badgeDigits": "Ownership of a four-digit .ton domain.",
+    "badgeDnsLinked": "Linked in TON DNS",
+    "badgeDigits": "A four-digit .ton domain owned by the wallet or verified as linked in TON DNS.",
     "badgeSub": "Ownership of a .socool.ton subdomain.",
     "blueCollection":"Open NFT collection","activated":"Activated","burnBadge":"Burned at least 1,000 tokens","toZero":"Transfer to zero address","operationDetails":"Transaction details","supplyTitle":"Locks and staking","supplyFrozen":"Locked","supplyFrozenHint":"Balances in TonRaffles contracts","supplyStaked":"Staked","supplyStakedHint":"JVault positions, including pending withdrawals",
     "intro": "Trades, holders and $LUDOMAN burns on TON.",
@@ -252,19 +254,32 @@ const walletLabels = {
       key:"The address colour identifies the wallet’s role in this transaction.",holderKey:"Address colours show the last observed trade across tracked pools. Grey means no trade was found in the archive."}
 };
 const wl=key=>walletLabels[lang][key];
-function linkedDomain(wallet){
+function freshIdentity(wallet){
   const record=snapshot.identity?.byWallet?.[wallet];
-  return record?.checked>=Date.now()/1000-86400 ? record.domain : null;
+  return record?.checked>=Date.now()/1000-day ? record : null;
+}
+function linkedDomain(wallet){
+  return freshIdentity(wallet)?.domain||null;
+}
+const fourDigitDomain=/^[0-9]{4}\.ton$/;
+function numericDomains(wallet,verifiedDomain){
+  const record=freshIdentity(wallet);
+  const holders=snapshot.holders;
+  const holderName=holders?.asOf>=Date.now()/1000-day
+    ? holders.holders.find(row=>row.wallet===wallet)?.name : null;
+  const linked=[record?.domain,...(record?.linkedDigits||[]),holderName,verifiedDomain]
+    .filter(name=>fourDigitDomain.test(name||""));
+  const owned=(snapshot.domains?.byWallet?.[wallet]?.digits||[]).filter(name=>fourDigitDomain.test(name));
+  return {names:[...new Set([...linked,...owned])],linked:new Set(linked)};
 }
 function hasDomainBadge(wallet){
-  const record=snapshot.domains?.byWallet?.[wallet];
-  return Boolean(linkedDomain(wallet)||record?.digits?.length);
+  return Boolean(linkedDomain(wallet)||numericDomains(wallet).names.length);
 }
 
 const authorCollection="EQAhaFPX9zIBVYe_vfy3dudCkxJDjSoMjj59KndtHKcqo3iy";
 const projectBadgeDefs=[
-  ["staking","","https://jvault.xyz/staking/v2/stake/LUDOMAN"],
   ["author","author NFT",""],
+  ["staking","","https://jvault.xyz/staking/v2/stake/LUDOMAN"],
   ["vnuk","VNUK","https://t.me/mRvnukICHlife"],
   ["joystick","Joystick","https://t.me/joystickpro"],
   ["phoenix","Phoenix","https://t.me/PHXPW"],
@@ -272,10 +287,26 @@ const projectBadgeDefs=[
   ["napiwas","NAPIWAS","https://t.me/NAPIWASofficial"],
   ["blueNft","","https://getgems.io/collection/EQBmoucipH0QT_qpd361W-9zUlyFsSl1FD1GIY0AfXdpPQW8"]
 ];
-function appendProjectBadges(wrapper,wallet){
+function appendProjectBadges(wrapper,wallet,verifiedDomain){
   const data=snapshot.badges?.sources;
   const identity=snapshot.identity?.byWallet?.[wallet];
   const badges=el("span",undefined,"projectBadges");
+  if(identity?.activated){
+    const date=new Date(identity.activated*1000);
+    const fifth=new Date(date);
+    fifth.setUTCFullYear(date.getUTCFullYear()+5);
+    if(fifth.getUTCMonth()!==date.getUTCMonth())fifth.setUTCDate(0);
+    if(Date.now()>fifth.getTime()){
+      const badge=el("span",undefined,"projectBadge og");
+      badge.append(el("span","OG"));
+      badge.title=t("activated")+" "+stamp(identity.activated);
+      badge.setAttribute("aria-label","OG · "+badge.title);
+      badges.append(badge);
+    }
+  }
+  const domains=snapshot.domains?.byWallet?.[wallet];
+  const digits=numericDomains(wallet,verifiedDomain);
+  appendDomainBadge(badges,digits.names,"digits",domains?.digitsAt,digits.linked);
   function match(key){
     const source=data?.[key];
     return source?.asOf>=Date.now()/1000-24*3600 && source.wallets?.[wallet];
@@ -307,19 +338,6 @@ function appendProjectBadges(wrapper,wallet){
     }
     badges.append(badge);
   }
-  if(identity?.activated){
-    const date=new Date(identity.activated*1000);
-    const fifth=new Date(date);
-    fifth.setUTCFullYear(date.getUTCFullYear()+5);
-    if(fifth.getUTCMonth()!==date.getUTCMonth())fifth.setUTCDate(0);
-    if(Date.now()>fifth.getTime()){
-      const badge=el("span",undefined,"projectBadge og");
-      badge.append(el("span","OG"));
-      badge.title=t("activated")+" "+stamp(identity.activated);
-      badge.setAttribute("aria-label","OG · "+badge.title);
-      badges.append(badge);
-    }
-  }
   if(burnTotals.get(wallet)>=1000n*10n**9n){
     const badge=el("span","🔥","projectBadge burner");
     badge.title=t("burnBadge");
@@ -329,7 +347,21 @@ function appendProjectBadges(wrapper,wallet){
   if(badges.childElementCount)wrapper.append(badges);
 }
 
-function walletIdentity(raw,name,kind,{activity=false, holder=false}={}){
+function appendDomainBadge(badges,names,type,checked,linked){
+  if(!names.length)return;
+  const name=names[0];
+  const badge=el("span",name,"domainBadge "+type);
+  const proof=linked?.has(name)?t("badgeDnsLinked"):wl("checked")+" · "+stamp(checked);
+  badge.title=wl(type)+" · "+proof;
+  badges.append(badge);
+  if(names.length>1){
+    const rest=el("details",undefined,"domainDetails");
+    rest.append(el("summary",wl("moreNames")+" (+"+(names.length-1)+")"),
+      el("span",names.slice(1).join(" · ")));
+    badges.append(rest);
+  }
+}
+function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDomain}={}){
   const wrapper=el("span",undefined,"walletIdentity");
   const identity=snapshot.identity?.byWallet?.[raw];
   const domain=linkedDomain(raw);
@@ -339,22 +371,7 @@ function walletIdentity(raw,name,kind,{activity=false, holder=false}={}){
     wrapper.append(el("span",wl(kind==="buy"?"activeBuy":"activeSell"),"walletRole "+kind));
   }
   wrapper.append(address);
-  const record=snapshot.domains?.byWallet?.[raw];
-  const names=record?.digits||[];
-  if(names.length){
-    wrapper.classList.add("hasDigits");
-    const badge=el("span",names[0],"domainBadge digits");
-    if(address.textContent===names[0]) badge.hidden=true;
-    badge.title=wl("digits")+" · "+wl("checked")+" · "+stamp(record.digitsAt);
-    wrapper.append(badge);
-    if(names.length>1){
-      const rest=el("details",undefined,"domainDetails");
-      rest.append(el("summary",wl("moreNames")+" (+"+(names.length-1)+")"),
-        el("span",names.slice(1).join(" · ")));
-      wrapper.append(rest);
-    }
-  }
-  appendProjectBadges(wrapper,raw);
+  appendProjectBadges(wrapper,raw,verifiedDomain);
   return wrapper;
 }
 function burnRows(){
@@ -465,7 +482,7 @@ function renderLookup(){
  const rank=holders.findIndex(row=>row.wallet===wallet);
  const holder=holders[rank];
  const title=el("h3");
- title.append(walletIdentity(wallet,name||holder?.name,undefined,{holder:true}));
+ title.append(walletIdentity(wallet,name||holder?.name,undefined,{holder:true,verifiedDomain:name}));
  target.append(title);
  const value=balance??holder?.ludoman;
  const holding=el("p",value==null?t("walletBalanceUnknown"):t("walletBalance")+": "+format(value,4)+" LUDOMAN");
@@ -503,7 +520,7 @@ async function findWallet(event){
    if(!wallet){
      const query=input.toLowerCase();
      const cached=Object.keys(snapshot.identity?.byWallet||{}).find(key=>linkedDomain(key)===query)
-       ||snapshot.holders?.holders?.find(row=>row.name===query)?.wallet;
+       || (snapshot.holders?.asOf>=Date.now()/1000-day ? snapshot.holders.holders.find(row=>row.name===query)?.wallet : null);
      try{
        const record=await lookupData("/dns/"+encodeURIComponent(query)+"/resolve",controller.signal);
        wallet=rawLookupAddress(record?.wallet?.address||"");
