@@ -2,6 +2,8 @@
 import json
 import sys
 import time
+from collections import defaultdict
+from decimal import Decimal
 from pathlib import Path
 
 import assets
@@ -19,6 +21,24 @@ def save(path, value):
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False))
     temporary.replace(path)
+
+
+def holder_ranks(section):
+    return {row["wallet"]: rank for rank, row in enumerate(section.get("holders", [])[:20], 1)}
+
+
+def seller_ranks(section):
+    end = section.get("asOf", 0)
+    rows = section.get("rows", [])
+    previous = {}
+    for days in (1, 7, 30):
+        totals = defaultdict(Decimal)
+        for row in rows:
+            if row["kind"] == "sell" and end - days * 86400 < row["time"] <= end:
+                totals[row["wallet"]] += Decimal(row["ludoman"])
+        ordered = sorted(totals, key=lambda wallet: (-totals[wallet], wallet))
+        previous[str(days)] = {wallet: rank for rank, wallet in enumerate(ordered[:20], 1)}
+    return previous
 
 
 def refresh():
@@ -41,6 +61,10 @@ def refresh():
                 start_at = max(1, old["asOf"] - 3600) if old.get("since") == 1 else 1
                 rows, _ = assets.burns(old.get("rows", []), start_at)
                 section = {"rows": rows, "since": 1, "asOf": now}
+            if key == "holders":
+                section["previousRanks"] = holder_ranks(old)
+            elif key == "trades":
+                section["previousRanks"] = seller_ranks(old)
             snapshot[key] = section
             print(key, "OK", len(section.get("rows", section.get("holders", []))), flush=True)
         except Exception as error:
