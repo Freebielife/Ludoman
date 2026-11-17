@@ -42,6 +42,13 @@ jobs:
           name: ludoman-responsive-previews
           path: build/screenshots
           if-no-files-found: ignore
+      - name: Export upload-ready standalone index.html
+        uses: actions/upload-artifact@v4
+        with:
+          name: ludoman-design-single-html
+          path: index.html
+          if-no-files-found: error
+          retention-days: 7
       - name: Commit preview HTML to design branch
         run: |
           git config user.name 'github-actions[bot]'
