@@ -226,7 +226,12 @@ try{lang=localStorage.getItem("ludoman-lang")==="en"?"en":"ru";currency=localSto
 const t=key=>texts[lang][key], day=86400, ranges=[3600,day,7*day,30*day,182*day,365*day];
 function el(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e}
 function link(href,txt){const a=el("a",txt);a.href=href;a.target="_blank";a.rel="noopener noreferrer";return a}
-function format(n,d=2){return Number(n).toLocaleString(lang,{maximumFractionDigits:d})}
+function format(n,d=1){
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1});
+}
 function stamp(s){return s?new Date(s*1000).toLocaleString(lang,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",year:"numeric"}):"—"}
 function short(w){return w?w.slice(0,6)+"…"+w.slice(-5):"—"}
 // Use a user-friendly TON address for explorer links and the visible short label.
@@ -316,7 +321,7 @@ function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
   }
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
-  appendDomainBadge(badges,digits.names,"digits",domains?.digitsAt,digits.linked);
+  appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
   function match(key){
     const source=data?.[key];
     return source?.asOf>=Date.now()/1000-24*3600 && source.wallets?.[wallet];
@@ -413,7 +418,10 @@ function select(id,labels,selected,onClick){const node=$(id);node.replaceChildre
 function freshness(s){if(!s?.asOf)return t("no");return t("updated")+" "+stamp(s.asOf)+(Date.now()/1000-s.asOf>4*3600?" · "+t("delayed"):"")}
 function coverage(section,cut){return section&&section.since>cut?t("partial")+" · "+t("since")+" "+stamp(section.since):""}
 function capFormat(n,compact=false){
- return Number(n).toLocaleString(lang,{maximumFractionDigits:compact?1:0,...(compact?{notation:'compact'}:{})});
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1,...(compact?{notation:"compact"}:{})});
 }
 function svg(tag,attrs){const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n}
 function volumeBars(start,end,width,left,right){
@@ -597,7 +605,7 @@ function chart(){
  const width=Math.max(240,plot.clientWidth||800),left=8,right=width-76,top=20,bottom=184;
  const box=svg('svg',{viewBox:`0 0 ${width} 238`,preserveAspectRatio:'none',role:'group','aria-label':t('chart')});
  const x=time=>left+(time-start)/ranges[period]*(right-left);
- const info=$('readout');info.replaceChildren();
+ // The chart stays interactive; public technical readout has been removed.
  const colour=model.change===null||model.change>=0?'#38dda0':'#ff2020';
  $('market').style.setProperty('--chart-colour',colour);
  if(points.length){
@@ -625,7 +633,7 @@ function chart(){
      active=i;const p=points[i],pos=coords[i];
      cursor.setAttribute('cx',pos[0]);cursor.setAttribute('cy',pos[1]);cursor.setAttribute('visibility','visible');
      cursorLine.setAttribute('d',`M${pos[0]} ${top}V${bottom}`);cursorLine.setAttribute('visibility','visible');
-     info.replaceChildren(document.createTextNode(stamp(p.row.time)+' · '+capWithUnit(p.cap)+' · '),tx(p.row));
+     // Cursor only: transaction details remain available in the operations feed.
    }
    inspect(active);
    box.setAttribute('tabindex','0');box.setAttribute('aria-description',t('pointHint'));
@@ -646,8 +654,8 @@ function chart(){
    const cx=Math.max(12,Math.min(right,x(r.time)));
    g.append(svg('rect',{x:cx-11,y:191,width:25,height:25,rx:6,fill:'#ffedd9'}));
    const icon=svg('text',{x:cx-7,y:209,style:'font-size:15px'});icon.textContent='🔥';g.append(icon);
-   const show=()=>info.replaceChildren(document.createTextNode(stamp(r.time)+' · '+t('burn')+' '+format(r.ludoman)+' LUDOMAN · '),tx(r));
-   g.addEventListener('click',e=>{e.preventDefault();show()});g.addEventListener('focus',show);box.append(g);
+   // Burn markers now link straight to the chain explorer without a readout.
+   box.append(g);
  }
  const axisTime=seconds=>new Date(seconds*1000).toLocaleString(lang,period===0?{hour:'2-digit',minute:'2-digit'}:period===1?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:{day:'numeric',month:'short',year:'2-digit'});
  for(const [pos,time,anchor] of [[left,start,'start'],[width-3,end,'end']]){
@@ -655,7 +663,7 @@ function chart(){
  }
  plot.append(box);
  volumeBars(start,end,width,left,right);
- $('chartInfo').textContent=[freshness(section),coverage(section,start),currency==='USD'&&snapshot.rates?.asOf?((lang==='ru'?'Курс GRAM/USD · ':'GRAM/USD rate · ')+freshness(snapshot.rates)):'',!model.tradeCount&&points.length?t('capNoTrades'):'',snapshot.holders?.asOf<section?.asOf?(lang==='ru'?'Предложение на ':'Supply as of ')+stamp(snapshot.holders.asOf):''].filter(Boolean).join(' · ');
+
 }
 function stats(){
  const trades=snapshot.trades,burns=snapshot.burns&&snapshot.zeroBurns?{...snapshot.burns,asOf:Math.min(snapshot.burns.asOf,snapshot.zeroBurns.asOf),rows:burnRows()}:snapshot.burns;
