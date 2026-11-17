@@ -755,6 +755,27 @@ nav a.on,nav a[aria-current="location"]{
  #rank .rankingRow.paperHands,#rank .paperHands::before{animation:none!important}
 }
 
+/* OBSERVATORY OPERATION CARDS V1.1 — no per-card expansion, direct explorer action. */
+#feed .operationRow .opHeader{align-items:center;gap:12px}
+#feed .operationRow .opDate{flex:0 1 auto;text-align:right}
+#feed .operationRow .opTransaction{
+ display:inline-flex;position:relative;z-index:2;align-self:flex-end;justify-content:center;align-items:center;
+ gap:7px;min-height:42px;margin-top:-3px;padding:8px 12px;
+ color:#a0ddff;background:#1c3a53;border:1px solid #4576a0;border-radius:10px;
+ font-size:13px;font-weight:770;line-height:1.2;text-decoration:none;white-space:nowrap;
+ transition:background .18s,border-color .18s;
+}
+#feed .operationRow .opTransaction::after{content:"↗";font-size:16px;line-height:1}
+#feed .operationRow .opTransaction:hover{background:#26516f;border-color:#81caff;color:#eff9ff}
+#feed .operationRow .opTransaction:focus-visible{outline:2px solid #b3e6ff;outline-offset:3px}
+#activity #more{display:flex;justify-content:center;align-items:center;width:100%;
+ min-height:48px;margin-top:14px;padding:11px 13px;background:#183f5e;
+ border:1px solid #547d9d;border-radius:12px;color:#e2f3ff;font-size:14px;font-weight:760}
+#activity #more:hover{background:#23577c;border-color:#8ccfff}
+#activity #more[hidden]{display:none}
+@media(max-width:590px){
+ #feed .operationRow .opTransaction{min-height:44px;margin-top:-5px}
+}
 </style>
 </head><body id="top">
 <header><div class="wrap nav">
@@ -1012,7 +1033,7 @@ const texts = {
     "burn": "Сжигание",
     "holders": "Держатели",
     "sellers": "Продавцы",
-    "more": "Ещё 30",
+    "more": "Показать ещё",
     "less": "Свернуть",
     "copy": "Копировать адрес",
     "copied": "Скопировано",
@@ -1123,7 +1144,7 @@ const texts = {
     "burn": "Burn",
     "holders": "Holders",
     "sellers": "Sellers",
-    "more": "30 more",
+    "more": "Show more",
     "less": "Collapse",
     "copy": "Copy address",
     "copied": "Copied",
@@ -1712,17 +1733,14 @@ function list(){
     &&(!$("feedDomains").checked||hasDomainBadge(r.wallet))
     &&[...selectedBadgeFilters].every(key=>hasWalletBadge(r.wallet,key)))
   .sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
- $("feed").replaceChildren(...combined.slice(0,expanded?50:20).map(r=>{
+ const visible=expanded?combined:combined.slice(0,10);
+ $("feed").replaceChildren(...visible.map(r=>{
    const item=el("article",undefined,"row operationRow trade-"+r.kind);
    const header=el("div",undefined,"opHeader");
    const title=el("strong",r.method==="zero"?t("toZero"):t(r.kind),"opKind "+r.kind);
    const date=el("time",stamp(r.time),"opDate");
    date.dateTime=new Date(r.time*1000).toISOString();
-   const toggle=el("button",undefined,"opToggle");
-   toggle.type="button";toggle.setAttribute("aria-label",t("operationDetails"));
-   toggle.setAttribute("aria-expanded","false");
-   toggle.append(el("span","⌄"));
-   header.append(title,date,toggle);
+   header.append(title,date);
    const amounts=el("div",undefined,"opAmounts");
    const token=el("div",undefined,"opAmount opToken");
    token.append(el("strong",format(r.ludoman),"opAmountValue"),el("small","LUDOMAN","opAmountUnit"));
@@ -1732,21 +1750,18 @@ function list(){
    amounts.append(token,gram);
    const wallet=el("div",undefined,"opWallet");
    wallet.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
-   const meta=[r.kind!=="burn"?r.dex||"DeDust":"",stamp(r.time)].filter(Boolean).join(" · ");
-   const details=el("div",undefined,"opMobile");
-   details.id="operation-"+r.tx;details.hidden=true;
-   details.append(el("small",meta),tx(r));
-   toggle.setAttribute("aria-controls",details.id);
-   toggle.onclick=()=>{
-     details.hidden=!details.hidden;
-     toggle.setAttribute("aria-expanded",String(!details.hidden));
-   };
-   item.append(header,amounts,wallet,details);
+   const transaction=link("https://gram.org/tx/"+r.tx,lang==="ru"?"Транзакция":"Transaction");
+   transaction.className="opTransaction";
+   transaction.title=r.tx;
+   item.append(header,amounts,wallet,transaction);
    return item;
  }));
  if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
- $("more").hidden=combined.length<=20;
- $("more").textContent=expanded?t("less"):t("more").replace("30",String(Math.min(30,combined.length-20)));
+ const more=$("more");
+ more.hidden=combined.length<=10;
+ more.setAttribute("aria-expanded",String(expanded));
+ more.setAttribute("aria-controls","feed");
+ more.textContent=expanded?t("less")+" ↑":t("more")+" ("+(combined.length-10)+") ↓";
 }
 function rankedSellers(source){
  const groups=new Map();
