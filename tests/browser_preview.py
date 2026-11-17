@@ -71,16 +71,24 @@ def main() -> None:
                     assert page.locator("#badgeFilterCount").inner_text() == ""
                     page.locator("#badgeFilterToggle").click()
                     assert page.locator("#badgeFilterPanel").is_hidden()
+                    if width == 390:
+                        page.locator("#badgeFilterToggle").click()
+                        page.locator("#activity").scroll_into_view_if_needed()
+                        page.screenshot(path=str(SCREENSHOTS / "ludoman-filters-390.png"))
+                        page.locator("#badgeFilterToggle").click()
                     # Only 7- and 30-day top sellers receive Paper Hands.
                     page.locator("#views button").nth(1).click()
                     page.locator("#sellerPeriods button").nth(0).click()
                     assert page.locator("#rank .paperHands").count() == 0
                     page.locator("#sellerPeriods button").nth(1).click()
-                    assert page.locator("#rank .paperHands").count() <= 10
+                    assert page.locator("#rank .paperHands").count() == min(10, page.locator("#rank .rankingRow").count())
+                    if width == 390:
+                        page.locator("#wallets").scroll_into_view_if_needed()
+                        page.screenshot(path=str(SCREENSHOTS / "ludoman-paper-hands-390.png"))
                     page.locator("#sellerPeriods button").nth(2).click()
-                    assert page.locator("#rank .paperHands").count() <= 10
+                    assert page.locator("#rank .paperHands").count() == min(10, page.locator("#rank .rankingRow").count())
                     page.locator("#views button").nth(0).click()
-                    assert page.locator("#rank .diamondHands").count() <= 10
+                    assert page.locator("#rank .diamondHands").count() == min(10, page.locator("#rank .rankingRow").count())
                     assert page.locator("#rank .paperHands").count() == 0
                     # Locale-aware decimal formatting; monetary value always has one place.
                     example = page.evaluate("format(156643.9396)")
