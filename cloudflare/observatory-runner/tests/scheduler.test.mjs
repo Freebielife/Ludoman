@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import worker, { dispatchDue, selectDueProjects, validateProject } from "../src/index.mjs";
 import { projects } from "../src/projects.mjs";
 
@@ -98,4 +99,12 @@ test("cloudflare scheduled handler dispatches configured repos", async () => {
   } finally {
     globalThis.fetch = original;
   }
+});
+
+test("wrangler cron matches the ten-minute dispatcher slot", () => {
+  const json = JSON.parse(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8"));
+  assert.equal(json.name, "freebie-observatory-runner");
+  assert.equal(json.main, "src/index.mjs");
+  assert.deepEqual(json.triggers.crons, ["*/10 * * * *"]);
+  assert.equal(JSON.stringify(json).includes("GITHUB_ACTIONS_TOKEN"), false);
 });
