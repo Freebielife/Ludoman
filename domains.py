@@ -36,24 +36,24 @@ def four_digits(wallet):
     return sorted(result)
 
 
-def check_queue(addresses, visible, checked, now):
+def check_queue(addresses, visible, checked, now, *, checked_at="digitsAt", limit=45):
     """Refresh visible identities hourly while reserving every third slot for history."""
     priority, history = [], []
     for wallet in addresses:
         record = checked[wallet]
         ttl = 3600 if wallet in visible else 86400
-        if record.get("digitsAt", 0) and now - record["digitsAt"] < ttl:
+        if record.get(checked_at, 0) and now - record[checked_at] < ttl:
             continue
         # Failed requests must rotate too, without exhausting the free API budget.
         if record.get("lastAttempt", 0) and now - record["lastAttempt"] < 1800:
             continue
         (priority if wallet in visible else history).append(wallet)
-    age = lambda w: max(checked[w].get("digitsAt", 0), checked[w].get("lastAttempt", 0))
+    age = lambda w: max(checked[w].get(checked_at, 0), checked[w].get("lastAttempt", 0))
     priority, history = deque(sorted(priority, key=age)), deque(sorted(history, key=age))
     result = []
-    while (priority or history) and len(result) < 45:
+    while (priority or history) and len(result) < limit:
         for queue in (priority, priority, history):
-            if queue and len(result) < 45:
+            if queue and len(result) < limit:
                 result.append(queue.popleft())
     return result
 

@@ -10,11 +10,13 @@ import assets
 import badges
 import domains
 import observatory
+import pools
 import trades
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "snapshot.json"
 YEAR = 366 * 86400
+PROJECT_DATA_INTERVAL = 86400
 
 
 def save(path, value):
@@ -45,6 +47,16 @@ def refresh():
     now = int(time.time())
     snapshot = json.loads(DATA.read_text()) if DATA.exists() else {"schema": 1, "token": assets.MASTER}
     errors = []
+    project_updated = False
+    for key, read in (("pools", pools.collect), ("vesting", observatory.vesting), ("staking", observatory.staking)):
+        if now - snapshot.get(key, {}).get("asOf", 0) >= PROJECT_DATA_INTERVAL:
+            try:
+                snapshot[key] = read(now)
+                project_updated = True
+            except Exception as error:
+                errors.append(key)
+                print(f"{key} FAILED: {error}", flush=True)
+    core_error_count = len(errors)
     for key in ("holders", "burns", "trades"):
         try:
             old = snapshot.get(key, {})
@@ -70,7 +82,7 @@ def refresh():
         except Exception as error:
             errors.append(key)
             print(key, "FAILED:", error, file=sys.stderr, flush=True)
-    core_updated = len(errors) < 3
+    core_updated = len(errors) - core_error_count < 3
     if core_updated:
         try:
             snapshot["domains"] = domains.enrich(snapshot, now)
@@ -90,13 +102,9 @@ def refresh():
         except Exception as error:
             errors.append("zeroBurns")
             print("Zero-address burns:", error, flush=True)
+        snapshot["fragmentNumbers"] = badges.refresh_fragment_numbers(snapshot, now)
         snapshot["identity"] = observatory.identity(snapshot, now)
-        for key, fetch_supply in (("vesting", observatory.vesting), ("staking", observatory.staking)):
-            try:
-                snapshot[key] = fetch_supply(now)
-            except Exception as error:
-                errors.append(key)
-                print(f"{key} FAILED:", error, flush=True)
+    if core_updated or (project_updated and DATA.exists()):
         snapshot.update(schema=1, token=assets.MASTER, updated=now, errors=errors)
         DATA.parent.mkdir(exist_ok=True)
         save(DATA, snapshot)

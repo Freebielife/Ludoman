@@ -28,6 +28,7 @@ const texts = {
     "badgeJoystick": "От 200 000 JSI или NFT из коллекции Joystick.",
     "badgePhoenix": "От 200 000 PHX.",
     "badgeBlue": "NFT из коллекции, указанной в ссылке на метке.",
+    "badgeFragment": "Владелец NFT анонимного номера Fragment",
     "badgeOg": "Более пяти лет с первой активации кошелька.",
     "badgeBurn": "Сожжено от 1 000 токенов проекта, включая переводы на нулевой адрес.",
     "badgeArni": "Более 50 000 ARNI.",
@@ -135,6 +136,7 @@ const texts = {
     "badgeJoystick": "At least 200,000 JSI or an NFT from the Joystick collection.",
     "badgePhoenix": "At least 200,000 PHX.",
     "badgeBlue": "An NFT from the collection linked on the badge.",
+    "badgeFragment": "Owns a Fragment anonymous number NFT",
     "badgeOg": "Over five years since the wallet was first activated.",
     "badgeBurn": "At least 1,000 project tokens burned, including transfers to the zero address.",
     "badgeArni": "Over 50,000 ARNI.",
@@ -276,6 +278,7 @@ function hasDomainBadge(wallet){
   return Boolean(linkedDomain(wallet)||numericDomains(wallet).names.length);
 }
 
+const fragmentCollection="0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2";
 const authorCollection="EQAhaFPX9zIBVYe_vfy3dudCkxJDjSoMjj59KndtHKcqo3iy";
 const projectBadgeDefs=[
   ["author","author NFT",""],
@@ -287,7 +290,7 @@ const projectBadgeDefs=[
   ["napiwas","NAPIWAS","https://t.me/NAPIWASofficial"],
   ["blueNft","","https://getgems.io/collection/EQBmoucipH0QT_qpd361W-9zUlyFsSl1FD1GIY0AfXdpPQW8"]
 ];
-function appendProjectBadges(wrapper,wallet,verifiedDomain){
+function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
   const data=snapshot.badges?.sources;
   const identity=snapshot.identity?.byWallet?.[wallet];
   const badges=el("span",undefined,"projectBadges");
@@ -303,6 +306,13 @@ function appendProjectBadges(wrapper,wallet,verifiedDomain){
       badge.setAttribute("aria-label","OG · "+badge.title);
       badges.append(badge);
     }
+  }
+  const fragment=snapshot.fragmentNumbers?.byWallet?.[wallet];
+  if(ownsFragment ?? (fragment?.owns && fragment.checkedAt>=Date.now()/1000-2*day)){
+    const badge=el("span","+888","projectBadge fragmentNumber");
+    badge.title=t("badgeFragment");
+    badge.setAttribute("aria-label","+888 · "+badge.title);
+    badges.append(badge);
   }
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
@@ -361,7 +371,7 @@ function appendDomainBadge(badges,names,type,checked,linked){
     badges.append(rest);
   }
 }
-function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDomain}={}){
+function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDomain, ownsFragment}={}){
   const wrapper=el("span",undefined,"walletIdentity");
   const identity=snapshot.identity?.byWallet?.[raw];
   const domain=linkedDomain(raw);
@@ -371,7 +381,7 @@ function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDom
     wrapper.append(el("span",wl(kind==="buy"?"activeBuy":"activeSell"),"walletRole "+kind));
   }
   wrapper.append(address);
-  appendProjectBadges(wrapper,raw,verifiedDomain);
+  appendProjectBadges(wrapper,raw,verifiedDomain,ownsFragment);
   return wrapper;
 }
 function burnRows(){
@@ -476,13 +486,13 @@ function renderLookup(){
  const target=$("walletResult");target.replaceChildren();
  if(!lookupResult){target.hidden=true;return}
  target.hidden=false;
- const {wallet,name,balance,status}=lookupResult;
+ const {wallet,name,balance,status,ownsFragment}=lookupResult;
  if(status&&(!wallet||status==="walletPending")){target.append(el("p",t(status),"note"));return}
  const holders=snapshot.holders?.holders||[];
  const rank=holders.findIndex(row=>row.wallet===wallet);
  const holder=holders[rank];
  const title=el("h3");
- title.append(walletIdentity(wallet,name||holder?.name,undefined,{holder:true,verifiedDomain:name}));
+ title.append(walletIdentity(wallet,name||holder?.name,undefined,{holder:true,verifiedDomain:name,ownsFragment}));
  target.append(title);
  const value=balance??holder?.ludoman;
  const holding=el("p",value==null?t("walletBalanceUnknown"):t("walletBalance")+": "+format(value,4)+" LUDOMAN");
@@ -511,7 +521,7 @@ async function findWallet(event){
  lookupPending?.abort();
  lookupPending=null;
  const input=$("walletQuery").value.trim();
- let wallet=rawLookupAddress(input),name=null,balance=null;
+ let wallet=rawLookupAddress(input),name=null,balance=null,ownsFragment;
  if(!wallet&&!dnsPattern.test(input)){lookupResult={status:"walletInvalid"};renderLookup();return}
  const controller=new AbortController();lookupPending=controller;
  const timeout=setTimeout(()=>controller.abort(),12000);
@@ -531,7 +541,18 @@ async function findWallet(event){
      }
      name=query;
    }
-   const record=await lookupData("/accounts/"+encodeURIComponent(wallet)+"/jettons/"+MASTER,controller.signal);
+   const account="/accounts/"+encodeURIComponent(wallet);
+   const [jetton,nfts]=await Promise.allSettled([
+     lookupData(account+"/jettons/"+MASTER,controller.signal),
+     lookupData(account+"/nfts?"+new URLSearchParams({collection:fragmentCollection,limit:100}),controller.signal)
+   ]);
+   const record=jetton.value;
+   const items=nfts.value?.nft_items;
+   if(Array.isArray(items)){
+     const ownsNumber=items.some(item=>item.verified===true && item.collection?.address===fragmentCollection &&
+       item.owner?.address===wallet && wallet!=="0:"+"0".repeat(64));
+     if(ownsNumber || items.length<100)ownsFragment=ownsNumber;
+   }
    if(record&&rawLookupAddress(record.jetton?.address||"")===rawLookupAddress(MASTER)&&/^\d+$/.test(record.balance)){
      const decimals=Number(record.jetton.decimals);
      if(Number.isInteger(decimals)&&decimals>=0&&decimals<=30)balance=Number(record.balance)/10**decimals;
@@ -544,7 +565,7 @@ async function findWallet(event){
  }finally{
    clearTimeout(timeout);
    if(lookupPending===controller){
-     if(wallet)lookupResult={wallet,name,balance};
+     if(wallet)lookupResult={wallet,name,balance,ownsFragment};
      renderLookup();
    }
  }
@@ -718,6 +739,45 @@ function ranks(){
  const previous=isHolder?source?.previousRanks:source?.previousRanks?.[sellerDays];
  $("rank").replaceChildren(...data.map((r,i)=>{const title=el("b");title.append(rankPosition(i,previous?.[r.wallet]),walletIdentity(r.wallet,r.name,isHolder?lastActivity.get(r.wallet):"sell",{holder:isHolder}));return row(title,el("small",isHolder?t("balance"):t("sold")),el("b",format(isHolder?r.ludoman:Number(r.units)/1e9)+" LUDOMAN"),el("small",isHolder?format(r.share,4)+"%":(lang==="ru"?"Сделок: ":"Trades: ")+format(r.count,0)))}));if(!data.length)$("rank").append(el("p",source?t("none"):t("no"),"empty"))
 }
+function renderPools(){
+  const section=snapshot.pools;
+  const grid=$("discoveredPools");
+  grid.replaceChildren();
+  const labels={
+    pool:"Пул", contract:"Контракт пула", liquidity:"Ликвидность", checked:"Проверено по GeckoTerminal"
+  };
+  const english={pool:"Pool", contract:"Pool contract", liquidity:"Liquidity", checked:"Checked via GeckoTerminal"};
+  const words=lang==="ru"?labels:english;
+  $("poolChecked").textContent=section?.asOf?words.checked+" · "+stamp(section.asOf):"";
+  const indexed=new Map((section?.rows||[]).map(pool=>[rawLookupAddress(pool.address),pool]));
+  for(const card of document.querySelectorAll("#pools .knownPools .poolCard")){
+    card.querySelector(".poolLiquidity")?.remove();
+    const entries=[];
+    for(const anchor of card.querySelectorAll("a")){
+      const url=new URL(anchor.href);
+      if(url.hostname!=="www.geckoterminal.com" && url.hostname!=="gram.org")continue;
+      const address=rawLookupAddress(url.pathname.split("/").pop());
+      const pool=indexed.get(address);
+      if(!pool)continue;
+      indexed.delete(address);
+      if(pool.liquidityUsd!=null)entries.push("$"+format(pool.liquidityUsd,2));
+    }
+    if(entries.length)card.append(el("p",words.liquidity+" · "+entries.join(" / "),"poolLiquidity"));
+  }
+  for(const pool of indexed.values()){
+    const address=rawLookupAddress(pool.address);
+    if(!address)continue;
+    const card=el("article",undefined,"poolCard");
+    card.append(el("h3","LUDOMAN / "+pool.symbol),el("p",pool.dex));
+    const actions=el("div",undefined,"poolActions");
+    actions.append(link("https://www.geckoterminal.com/ton/pools/"+encodeURIComponent(pool.address),words.pool),
+      link("https://gram.org/address/"+encodeURIComponent(pool.address),words.contract));
+    card.append(actions);
+    if(pool.liquidityUsd!=null)card.append(el("p",words.liquidity+" · $"+format(pool.liquidityUsd,2),"poolLiquidity"));
+    grid.append(card);
+  }
+  grid.hidden=!grid.childElementCount;
+}
 function renderSupply(){
   const frozen=snapshot.vesting?.reserved;
   const principal=snapshot.staking?.principal;
@@ -732,7 +792,7 @@ function render(){document.documentElement.lang=lang;document.querySelectorAll("
    try{localStorage.setItem("ludoman-currency",currency)}catch{}
    render();
  });
- select("periods",t("periodNames"),period,i=>{period=i;render()});$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderSyncStatus()}
+ select("periods",t("periodNames"),period,i=>{period=i;render()});$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderPools();renderSyncStatus()}
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(MASTER);$("copy").textContent=t("copied")}catch{window.prompt(t("copy"),MASTER)}};
 $("walletSearchForm").onsubmit=findWallet;
 $("largeTrades").onchange=$("minTradeSize").oninput=()=>{expanded=false;list()};
@@ -759,7 +819,7 @@ function renderSyncStatus(){
 const refresh=createSnapshotLoader({
  getSnapshot:()=>snapshot,
  applySnapshot:next=>{
-  for(const key of ["zeroBurns","identity","vesting","staking"]){
+  for(const key of ["zeroBurns","identity","fragmentNumbers","pools","vesting","staking"]){
     if(snapshot[key]&&(!next[key]||snapshot[key].asOf>next[key].asOf))next[key]=snapshot[key];
   }
   snapshot=next;

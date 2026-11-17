@@ -285,6 +285,9 @@ html[lang="en"] #pools [lang="en"]{display:inline}
 #pools .poolActions a{display:inline-flex;align-items:center;min-height:38px;padding:5px 9px;color:#edf5ff;background:#22344c;border:1px solid #586d88;border-radius:7px;font-size:13px;font-weight:650;text-decoration:none}
 #pools .poolActions a:hover{background:#304963;text-decoration:underline}
 #pools .poolRoute,#pools .poolTiny{margin-top:16px;padding-top:13px;border-top:1px solid #39475b}
+#pools #discoveredPools{margin-top:10px}
+#pools .poolCard .poolLiquidity{margin-top:8px;font-size:12px;overflow-wrap:anywhere}
+#pools .poolCard h3{overflow-wrap:anywhere}
 #pools .poolRoute h3{margin:0 0 4px}
 #pools .poolRoute .poolCard{margin-top:9px;max-width:440px}
 #pools .poolTiny .poolGrid{margin-top:10px}
@@ -293,6 +296,7 @@ html[lang="en"] #pools [lang="en"]{display:inline}
 @media(max-width:500px){#pools .poolGrid{grid-template-columns:minmax(0,1fr)}}
 
 .columns :is(.row,.walletResult) .projectBadge.og{border-color:#a887c2;background:#222033}
+.columns :is(.row,.walletResult) .projectBadge.fragmentNumber{--badge-edge:#cc7cdb;background:#78348b;color:#fff;font-weight:800;white-space:nowrap}
 .projectBadge.og span{background:linear-gradient(90deg,#cbff69,#f3a5ff,#cbff69);background-size:210% 100%;background-clip:text;color:transparent;animation:projectBadgeGlow 4s ease-in-out infinite alternate;font-weight:800}
 .columns :is(.row,.walletResult) .projectBadge.burner{border-color:#966237;padding-inline:4px}
 .columns :is(.row,.walletResult) .projectBadge.blueNft{border-color:#3881a9;padding-inline:4px}

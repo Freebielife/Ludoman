@@ -7,8 +7,10 @@ from collections import defaultdict
 from urllib.parse import urlencode
 
 from assets import fetch, raw_address
+from domains import check_queue, owned, pages
 
 POOL = "EQANDE3kcYMMSkumPIuj0BWLi2kTTRXng6FSYrvRbEpUv877"
+FRAGMENT_NUMBERS = "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2"
 AUTHOR = "EQAhaFPX9zIBVYe_vfy3dudCkxJDjSoMjj59KndtHKcqo3iy"
 TOKENS = {
     "vnuk": ("EQCp6hbevSAM9G2WxeZDp0Mte6MPTUJouZrCNIeWHnhlOZZA", False),
@@ -167,3 +169,33 @@ def refresh(previous, now):
         failed.append("staking")
         print(f"Badges staking: {error}", flush=True)
     return {"sources": sources, "failed": failed}
+
+
+def fragment_number_owner(wallet):
+    if wallet == ZERO:
+        return False
+    items = pages(f"/accounts/{wallet}/nfts", {"collection": FRAGMENT_NUMBERS})
+    return any(owned(item, FRAGMENT_NUMBERS) == wallet for item in items)
+
+
+def refresh_fragment_numbers(snapshot, now):
+    groups = [
+        [row["wallet"] for row in snapshot.get(key, {}).get(rows, [])]
+        for key, rows in (("holders", "holders"), ("trades", "rows"), ("burns", "rows"), ("zeroBurns", "rows"))
+    ]
+    visible = set(wallet for group in groups for wallet in group[:50])
+    addresses = list(dict.fromkeys(wallet for group in groups for wallet in group))
+    previous = snapshot.get("fragmentNumbers", {}).get("byWallet", {})
+    records = {wallet: dict(previous.get(wallet, {})) for wallet in addresses}
+    deadline = time.monotonic() + 65
+    for wallet in check_queue(addresses, visible, records, now, checked_at="checkedAt", limit=30):
+        if time.monotonic() >= deadline:
+            break
+        record = records[wallet]
+        record["lastAttempt"] = now
+        try:
+            record.update(owns=fragment_number_owner(wallet), checkedAt=now)
+        except (OSError, ValueError, KeyError, RuntimeError) as error:
+            print(f"Fragment number ownership pending: {type(error).__name__}", flush=True)
+        time.sleep(1)
+    return {"asOf": now, "byWallet": {wallet: record for wallet, record in records.items() if record}}

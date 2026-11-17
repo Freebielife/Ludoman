@@ -33,3 +33,16 @@ class ProjectBadges(unittest.TestCase):
             result = badges.stake({})
         self.assertEqual(result["wallets"], {owner: True})
         self.assertEqual(result["cursor"], "123")
+
+    def test_fragment_number_requires_verified_collection_and_current_owner(self):
+        owner = "0:" + "a" * 64
+        valid = {"owner": {"address": owner}, "collection": {"address": badges.FRAGMENT_NUMBERS}, "verified": True}
+        invalid = [
+            {**valid, "verified": False},
+            {**valid, "owner": {"address": "0:" + "b" * 64}},
+            {**valid, "collection": {"address": "0:" + "c" * 64}},
+        ]
+        with patch.object(badges, "pages", side_effect=[invalid, [*invalid, valid]]) as pages:
+            self.assertFalse(badges.fragment_number_owner(owner))
+            self.assertTrue(badges.fragment_number_owner(owner))
+            pages.assert_called_with(f"/accounts/{owner}/nfts", {"collection": badges.FRAGMENT_NUMBERS})
