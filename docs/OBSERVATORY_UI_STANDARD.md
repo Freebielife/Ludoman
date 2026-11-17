@@ -1,0 +1,40 @@
+# Observatory UI Standard — v1.0 (prototype)
+
+This document records the reusable design and interaction rules validated in **Ludoman Observatory**. It does not claim that token-specific on-chain collectors or pool/contract addresses have already been generalized. KITO is outside this work.
+
+## Non-negotiable rules
+
+- **One standalone `index.html`** with embedded CSS, JS, snapshot, and artwork. No external runtime fonts, CSS frameworks, icon CDNs, or UI dependencies.
+- **RU/EN** interface, mobile-first, keyboard-usable controls, all links clickable and correct, no page-wide horizontal scrolling at 360, 390, 768, or 1280 px.
+- Never alter on-chain integer values or trade matching for presentation. Render token quantities, GRAM, USD, market cap, volume, stakes, locks, and percentages to **one fractional digit** using the locale. Nonzero absolute values that would otherwise display zero use `<0,1` / `<0.1`. Exact dates, hashes, addresses, domain IDs, ranks, discrete counts, and exchange fee parameters remain intact and do not acquire misleading decimals.
+- Only display a service name or its emoji when its wallet-role identification comes from the verified identity data; do not infer identity from transaction patterns alone.
+
+## Operations
+
+- Separate transaction cards with adequate padding, vertical rhythm, and legible mobile text. The **LUDOMAN amount and GRAM amount are opposite each other**, at equal font weight and comparable prominence. The token name is a subordinate label.
+- Wallet address or name gets its own row. **Only a four-digit `.ton` domain badge appears beside the wallet name**; OG, +888, project NFTs, JVault, burned-token badges, etc. appear below in a wrapping badge area.
+- Green buy and red sell styling; **animated fire / amber-red-gold color flow across the whole burn card**; reduce or disable animation when `prefers-reduced-motion` is enabled.
+- Collapsible **Filter** below the operation-type tabs: text search across available badge names, multi-select badge criteria (logical AND), existing minimum GRAM/domain controls, and Reset. All badge sources are configured by the project and must use the same ownership verification rules as the displayed badges.
+- Transaction details and Gram.org explorer links remain available on expansion. No chart technical readout, chart refresh details, or capitalization methodology paragraph below the chart.
+
+## Rankings
+
+- **Diamond Hands 💎:** top 10 holders only. A shimmering multicolour precious-stones frame and gemstone ornament, without compromising text legibility.
+- **Paper Hands 🧻:** top 10 sellers **in the 7-day and 30-day views only**. Animated frame, with repeated semi-transparent toilet-roll ornament across the card background. No Paper Hands in the 24-hour sellers view.
+- Both rank labels are **visual honors, not additional blockchain claims**. Other verified project/NFT badges remain visible.
+
+## Banner and global interface
+
+- Keep token-specific logo, name, and short description in a responsive hero. Primary button links to the market graph; secondary links to the project Telegram (project-specific URL). No clipping or overlap on narrow mobile screens.
+- Reserve modest, reusable emoji for stable section headings and navigation: 📈 Market, 🔄 Operations, 🏆 Rankings, 💧 Pools, 🔒 Locks/Staking, 🔗 Links. Translate labels to RU and EN; never hardcode LUDOMAN text into the eventual shared UI framework.
+- Keep market snapshot, pools, staking and locks update architecture independent of CSS/markup; avoid introducing additional remote requests or display-only dependencies.
+
+## Before marking future projects as supported
+
+Replace hard-coded LUDOMAN/GRAM symbols, master contract, art, URLs, all wallet badge source definitions and upstream collector parameters with **validated project configuration**. Check trading pair addresses, frozen and staked amounts, badge ownership and update cadence before deployment. Current Ludoman is a reference implementation, not yet that configurable generator.
+
+## Validation checklist
+
+- Run `node --test tests/*.test.cjs`, `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 build.py`, and `python3 verify.py`.
+- Chromium smoke test at 360 / 390 / 768 / 1280 px. Verify language switch, graph, navigation, filter/search/reset, seller periods, holder ranks, links, JS errors, mobile overflow and readable animations.
+- Check generated `index.html` embeds all images/JS/CSS and data without unresolved template tokens or external framework assets.
