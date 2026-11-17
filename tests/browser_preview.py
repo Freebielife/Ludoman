@@ -69,6 +69,8 @@ def main() -> None:
                         "(nodes) => nodes.map(node => node.getAttribute('href'))"
                     ):
                         assert href and (href.startswith("https://") or href.startswith("#")), href
+                    page.evaluate("window.scrollTo(0, 0)")
+                    page.wait_for_timeout(200)
                     page.screenshot(path=str(SCREENSHOTS / f"ludoman-{width}.png"), full_page=True)
                     print(f"PASS {width}px: layout, chart, navigation, language, links, JS")
                     page.close()
