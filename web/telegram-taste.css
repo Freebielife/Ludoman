@@ -1,0 +1,191 @@
+/* LUDOMAN / Telegram-inspired Observatory — design layer v1.
+   No remote fonts, frameworks, images or runtime dependencies.
+   Loaded AFTER the existing stylesheet. Keeps data/JS functionality intact. */
+:root{
+  color-scheme:dark;
+  --tg-bg:#090e18;--tg-surface:#121b2a;--tg-surface2:#192639;
+  --tg-elevated:#20344b;--tg-line:#2a405a;--tg-blue:#55b9ff;
+  --tg-blue-strong:#258fea;--tg-text:#f0f6ff;--tg-muted:#a6bdd2;
+  --tg-green:#51dcaa;--tg-red:#ff8696;--tg-gold:#f3c66f;
+  --night:var(--tg-bg);--paper:var(--tg-surface);--ink:var(--tg-text);
+  --muted:var(--tg-muted);--line:var(--tg-line);--blue:var(--tg-blue);
+  --link:#91d8ff;--green:var(--tg-green);--red:var(--tg-red);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-optical-sizing:auto;
+}
+html{scroll-padding-top:100px}
+body{
+  color:var(--tg-text);
+  background:radial-gradient(ellipse 80% 420px at 50% -150px,#1b315e 0%,transparent 72%),
+    linear-gradient(#080e19e8,#080e19f1),url("__OBSERVATORY_BG__") center top/cover fixed,#090e18;
+}
+.wrap{width:min(1160px,calc(100% - 40px))}
+a{color:var(--link)}
+button,input{font-family:inherit}
+a,button,summary{-webkit-tap-highlight-color:transparent}
+button:not(:disabled),a,summary{transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+button:active:not(:disabled),.introLinks a:active,.resourceList>a:active,#pools .poolActions a:active{transform:scale(.98)}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--tg-blue);outline-offset:3px}
+header{background:#0d1524f0;border-bottom:1px solid #2c4463;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.nav{min-height:70px;gap:18px}
+.brandMark{box-shadow:0 0 0 2px #314968,0 5px 20px #050a14a8}
+.brand strong{font-size:18px;letter-spacing:-.045em}
+.brand span{color:#b6cce0;font-size:14px}
+nav{gap:5px}
+nav a{padding:10px 13px;color:#b1c4d7;border-radius:12px;font-weight:600}
+nav a.on,nav a:hover{background:#1e3958;color:#f4faff}
+.langs{background:#17253a;padding:3px;border:1px solid #2d4560;border-radius:12px}
+.langs button{border-radius:9px;min-width:39px;min-height:35px;color:#b6cde2}
+.langs button.on{background:#288fd9;color:#fff;box-shadow:0 2px 10px #0613268c}
+main.wrap{padding-bottom:10px}
+.hero{margin:22px 0 14px;min-height:275px;border:1px solid #3b5c8d;border-radius:24px;
+  background:radial-gradient(ellipse at 81% 30%,#294c91 0%,transparent 48%),
+  radial-gradient(circle at 40% 110%,#132c55,transparent 60%),
+  linear-gradient(125deg,#111d35,#15274b);
+  box-shadow:0 18px 54px #02071164;isolation:isolate}
+.hero::before{opacity:.14}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,#ffffff08,transparent 50%);border-radius:inherit}
+.herotext{padding:clamp(23px,3.5vw,45px);max-width:68%}
+.hero .eyebrow{color:#98d1fc;letter-spacing:.13em}
+.hero .eyebrow i{box-shadow:0 0 0 5px #269de421}
+.hero h1{margin:13px 0 12px;font-size:clamp(39px,5.5vw,68px);line-height:1.03;letter-spacing:-.065em}
+.hero h1 em{font-style:normal;font-weight:550;font-family:inherit;letter-spacing:-.05em;color:#81ceff}
+.hero p{color:#d2e1f3;font-size:15px;max-width:510px;line-height:1.65}
+.heroArt{background-size:auto 83%;filter:drop-shadow(0 6px 28px #67acff40)}
+.introLinks{gap:10px;margin-top:21px}
+.introLinks a{display:inline-flex;align-items:center;justify-content:center;
+  min-height:42px;padding:9px 17px;border-radius:12px;font-size:14px;
+  background:#1d3554;border:1px solid #52759b;color:#f5faff}
+.introLinks a:first-child{background:#4bb4fc;color:#081a2c;border-color:#77caff}
+.introLinks a:hover{background:#2c5277;text-decoration:none;transform:translateY(-2px)}
+.introLinks a:first-child:hover{background:#83d0ff;color:#071b2c}
+.syncBar{background:#101c2c;border-color:#2b435f;border-radius:16px;
+  padding:12px 17px;box-shadow:0 6px 20px #050b152b}
+.syncBar p{color:#e3f5ff}
+.syncBar small{color:#9eb8ce}
+#refreshData{border-radius:11px;background:#213d5b;border-color:#476d92;color:#eaf7ff}
+#refreshData:hover{background:#2f5a81}
+.panel,.graph,.summary,.columns .panel,.resources,#pools,#activity,#wallets{
+  border:1px solid var(--tg-line);border-radius:20px;
+  background:linear-gradient(155deg,#151f30 0%,#111927 100%);
+  box-shadow:0 8px 34px #03091145;color:var(--tg-text)}
+.graph{background:linear-gradient(160deg,#172640 0%,#101a2d 76%);border-color:#315172}
+.graph .eyebrow{color:#86caff}
+.graph h2{color:#a8c6e0;margin-top:15px}
+.graph .price{color:#f4faff;letter-spacing:-.055em}
+.graph .chartCaption{color:#abc1d7}
+.graph #readout{border-color:#314964;background:#0e192a}
+.graph .capMethod{border-color:#2b4056;color:#98aec2}
+.graph #plot{border-radius:15px;overflow:hidden}
+.graphControls{gap:9px}
+.graph .tabs,.columns .tabs,.columns .smallTabs{background:#0a1728;border:1px solid #2a425c;border-radius:12px;padding:3px}
+.graph .tabs button,.columns .tabs button,.columns .smallTabs button{border-radius:9px;min-height:34px;padding:7px 12px;color:#bed3e6}
+.graph .tabs .on,.columns .tabs .on,.columns .smallTabs .on{background:#26659c;color:#fff;box-shadow:0 2px 8px #050d1780}
+.summary{margin-top:18px;background:linear-gradient(150deg,#182b44,#142037);border-color:#2a496b}
+.summary h2,.panel h2:not(.graph h2){color:#f1f7ff;font-weight:730;letter-spacing:-.035em}
+#stats{gap:11px}
+.stat{padding:16px;border-radius:15px;background:#102036;border:1px solid #34506f;box-shadow:inset 0 1px #ffffff0a}
+.stat b{color:#fff;font-size:clamp(21px,2.4vw,32px);line-height:1.22;margin:5px 0}
+.stat small{color:#a4bbd0}
+.stat span{font-weight:680}
+.stat span.buy,.stat span.sell,.stat span.burn{background:none;padding:0}
+.columns{gap:16px}
+.columns .panel{min-width:0}
+.sectionHeading{flex-wrap:wrap}
+.tag{background:#233a55;color:#badcf5;border:1px solid #355676}
+.row{border-top-color:#263950;padding:12px 3px}
+.row:hover{background:#ffffff07}
+.row.trade-buy,.row.trade-sell,.row.trade-burn{border-left:3px solid transparent;border-radius:8px;padding-left:10px}
+#activity .row.trade-buy{border-left:3px solid #52d5a2;background:#16362c42}
+#activity .row.trade-sell{border-left:3px solid #ff8191;background:#40232a50}
+#activity .row.trade-burn{border-left:3px solid #f5c16b;background:#3a2c1b48}
+.row b{color:#edf6ff}
+.row small{color:#a5bcd2}
+.columns .row .walletAddress{color:#d5e9fd}
+.columns .walletRole.buy,.columns .badge.buy{color:#75e7b2}
+.columns .walletRole.sell,.columns .badge.sell{color:#ff9bac}
+.columns .walletRole.burn,.columns .badge.burn{color:#f5c377}
+.position{color:#9fb6ca}
+.columns :is(.row,.walletResult) .projectBadge{border-radius:8px;background-color:#1d2b3e;min-height:28px}
+.columns :is(.row,.walletResult) .projectBadge.fragmentNumber{background:#813c99;color:#fff;border-color:#dd8bfa}
+.domainBadge.digits{border-radius:7px}
+#more,.resourceList>a,.resourceList>button,#pools .poolActions a{
+  background:#1c3958;border:1px solid #3a648b;border-radius:11px;color:#eaf5ff}
+#more{min-height:43px}
+#more:hover,.resourceList>a:hover,.resourceList>button:hover,#pools .poolActions a:hover{background:#2b5277}
+.supplyGrid a,#pools .poolCard{background:#17263a;border:1px solid #2b4665;border-radius:14px;padding:15px}
+.supplyGrid a:hover,#pools .poolCard:hover{border-color:#4785b3}
+.supplyGrid small{color:#b5c9da}
+#pools .poolCard h3{color:#f2f8ff}
+#pools .poolCard p{color:#a9c0d3}
+#pools .poolGrid{gap:12px}
+#pools .poolActions a{min-height:40px}
+.walletSearch,.badgeLegend{background:#101b2b;border-color:#2b4563;border-radius:12px}
+.walletSearch summary,.badgeLegend summary{color:#e1f1fd}
+.tradeSize input[type=number],.walletSearchForm input{background:#091729;border-color:#385575;color:#f5faff;border-radius:10px;min-height:38px}
+.walletSearchForm button{background:#285982;border-color:#478bb5;border-radius:10px;min-height:40px}
+.resources{background:linear-gradient(155deg,#152840,#152036)}
+.resourcesGrid article{border-color:#36516d}
+.resourceList>a,.resourceList>button{min-height:45px;padding:10px 13px}
+footer{background:transparent;border-top:1px solid #314862;border-radius:0;color:#bed4e7;margin-top:20px}
+footer>span{color:#a8c2d8}
+@media(min-width:900px){
+ .columns .panel{padding:23px}
+ .hero{min-height:305px}
+ .heroArt{background-size:auto 88%}
+}
+@media(max-width:800px){
+ html{scroll-padding-top:114px}
+ .wrap{width:calc(100% - 28px)}
+ .nav{gap:5px;padding-top:5px}
+ .brand strong{font-size:16px}
+ nav{overflow-x:auto;scrollbar-width:none;justify-content:space-between}
+ nav::-webkit-scrollbar{display:none}
+ nav a{min-height:42px;display:inline-flex;align-items:center;white-space:nowrap;padding:9px 10px}
+ .hero{margin-top:14px;min-height:230px}
+ .herotext{max-width:75%;padding:24px}
+ .resourcesGrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:590px){
+ .wrap{width:calc(100% - 22px)}
+ .hero{border-radius:20px;min-height:250px}
+ .hero h1{font-size:clamp(34px,8vw,46px)}
+ .herotext{max-width:100%;padding:20px 18px 78px}
+ .hero p{max-width:100%;padding-right:0}
+ .heroArt{width:100px;height:100px;top:auto;bottom:-7px;right:7px;inset:auto 7px -7px auto;opacity:.83;background-size:contain}
+ .hero .introLinks{max-width:calc(100% - 90px)}
+ .introLinks a{min-height:40px;padding:8px 11px}
+ .graph,.summary,.columns .panel,.resources{padding:16px}
+ .graphTop{gap:13px}
+ .graphControls{width:100%;justify-items:stretch}
+ .graph .tabs{width:100%;justify-content:space-between}
+ .graph .tabs button{flex:1 1 auto;padding:8px 6px;font-size:12px}
+ .graph .price{font-size:clamp(29px,8.7vw,39px)}
+ .graph #plot,.graph #plot svg{min-height:210px;height:210px}
+ #stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{padding:12px}
+ .stat b{font-size:clamp(19px,5.4vw,26px)}
+ .columns{gap:14px}
+ #pools .poolGrid{grid-template-columns:1fr}
+ .resourcesGrid{grid-template-columns:1fr}
+ .row{min-width:0}
+ .row>div{overflow-wrap:anywhere}
+ .syncBar{flex-wrap:wrap}
+ body{background-attachment:scroll}
+}
+@media(max-width:360px){
+ .brand strong{font-size:14px}
+ .brandMark{width:30px;height:30px}
+ .nav{column-gap:3px}
+ nav a{font-size:12px;padding:9px 7px}
+ .hero .introLinks{max-width:100%}
+ .heroArt{opacity:.4}
+ .graph .tabs button{font-size:11px}
+}
+@media(hover:hover){
+ .stat:hover,#pools .poolCard:hover{transform:translateY(-2px)}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
