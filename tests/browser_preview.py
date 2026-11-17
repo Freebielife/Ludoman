@@ -55,6 +55,37 @@ def main() -> None:
                         f"Horizontal overflow at {width}px: {sizes}"
                     )
                     assert not errors, f"JavaScript errors at {width}: {errors}"
+                    # The chart stays visible, but user-facing technical diagnostics are gone.
+                    assert page.locator("#readout, #chartInfo, .capMethod").count() == 0
+                    assert page.locator("#feed .operationRow .opAmounts").count() > 0
+                    assert page.locator("#feed .operationRow .opAmountValue").count() >= 2
+                    assert page.locator("#badgeFilterPanel").is_hidden()
+                    page.locator("#badgeFilterToggle").click()
+                    assert page.locator("#badgeFilterPanel").is_visible()
+                    assert page.locator("#badgeFilterList input").count() >= 12
+                    page.locator("#badgeFilterSearch").fill("888")
+                    assert page.locator("#badgeFilterList input").count() == 1
+                    page.locator("#badgeFilterList input").check()
+                    assert page.locator("#badgeFilterCount").inner_text() == "(1)"
+                    page.locator("#clearBadgeFilters").click()
+                    assert page.locator("#badgeFilterCount").inner_text() == ""
+                    page.locator("#badgeFilterToggle").click()
+                    assert page.locator("#badgeFilterPanel").is_hidden()
+                    # Only 7- and 30-day top sellers receive Paper Hands.
+                    page.locator("#views button").nth(1).click()
+                    page.locator("#sellerPeriods button").nth(0).click()
+                    assert page.locator("#rank .paperHands").count() == 0
+                    page.locator("#sellerPeriods button").nth(1).click()
+                    assert page.locator("#rank .paperHands").count() <= 10
+                    page.locator("#sellerPeriods button").nth(2).click()
+                    assert page.locator("#rank .paperHands").count() <= 10
+                    page.locator("#views button").nth(0).click()
+                    assert page.locator("#rank .diamondHands").count() <= 10
+                    assert page.locator("#rank .paperHands").count() == 0
+                    # Locale-aware decimal formatting; monetary value always has one place.
+                    example = page.evaluate("format(156643.9396)")
+                    assert example.endswith(",9"), example
+                    assert not errors, f"Javascript errors after filter/ranking checks at {width}: {errors}"
                     # Every mobile tab must be wholly visible (not clipped offscreen).
                     nav_rects = page.locator("#nav a").evaluate_all(
                         "(nodes) => nodes.map(n => ({left:n.getBoundingClientRect().left,"
