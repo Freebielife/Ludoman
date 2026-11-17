@@ -18,6 +18,9 @@ class DesignLayerTests(unittest.TestCase):
             with self.subTest(width=width):
                 self.assertIn(f"max-width:{width}px", css)
         self.assertIn("color-scheme:dark", css)
+        self.assertIn("--tg-accent:#008bff", css)
+        self.assertIn("#activity .row,#wallets .row{min-height:52px}", css)
+        self.assertIn("6028:2120", css)
         self.assertIn(".projectBadge.fragmentNumber", css)
         self.assertIn("prefers-reduced-motion", css)
         self.assertNotIn("@import", css)
