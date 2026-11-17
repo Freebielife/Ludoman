@@ -6,6 +6,8 @@ on:
     paths:
       - 'web/**'
       - 'build.py'
+      - 'tests/**'
+      - 'README.md'
       - '.github/workflows/design-preview.yml'
   workflow_dispatch:
 permissions:
