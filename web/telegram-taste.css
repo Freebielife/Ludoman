@@ -390,3 +390,24 @@ nav a.on,nav a[aria-current="location"]{
  #rank .rankingRow.paperHands,#rank .paperHands::before{animation:none!important}
 }
 
+/* OBSERVATORY OPERATION CARDS V1.1 — no per-card expansion, direct explorer action. */
+#feed .operationRow .opHeader{align-items:center;gap:12px}
+#feed .operationRow .opDate{flex:0 1 auto;text-align:right}
+#feed .operationRow .opTransaction{
+ display:inline-flex;position:relative;z-index:2;align-self:flex-end;justify-content:center;align-items:center;
+ gap:7px;min-height:42px;margin-top:-3px;padding:8px 12px;
+ color:#a0ddff;background:#1c3a53;border:1px solid #4576a0;border-radius:10px;
+ font-size:13px;font-weight:770;line-height:1.2;text-decoration:none;white-space:nowrap;
+ transition:background .18s,border-color .18s;
+}
+#feed .operationRow .opTransaction::after{content:"↗";font-size:16px;line-height:1}
+#feed .operationRow .opTransaction:hover{background:#26516f;border-color:#81caff;color:#eff9ff}
+#feed .operationRow .opTransaction:focus-visible{outline:2px solid #b3e6ff;outline-offset:3px}
+#activity #more{display:flex;justify-content:center;align-items:center;width:100%;
+ min-height:48px;margin-top:14px;padding:11px 13px;background:#183f5e;
+ border:1px solid #547d9d;border-radius:12px;color:#e2f3ff;font-size:14px;font-weight:760}
+#activity #more:hover{background:#23577c;border-color:#8ccfff}
+#activity #more[hidden]{display:none}
+@media(max-width:590px){
+ #feed .operationRow .opTransaction{min-height:44px;margin-top:-5px}
+}
