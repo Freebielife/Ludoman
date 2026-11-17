@@ -18,7 +18,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - name: Run JavaScript unit tests
@@ -29,6 +29,19 @@ jobs:
         run: |
           python3 build.py
           python3 verify.py
+      - name: Install browser checker
+        run: |
+          python3 -m pip install --quiet playwright
+          python3 -m playwright install chromium
+      - name: Validate responsive layout, links, and controls in Chromium
+        run: python3 tests/browser_preview.py
+      - name: Upload browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ludoman-responsive-previews
+          path: build/screenshots
+          if-no-files-found: ignore
       - name: Commit preview HTML to design branch
         run: |
           git config user.name 'github-actions[bot]'
