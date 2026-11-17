@@ -1,0 +1,31 @@
+name: Validate shared observatory scheduler
+
+on:
+  push:
+    branches:
+      - main
+      - infra/cloudflare-observatory-runner
+    paths:
+      - 'cloudflare/observatory-runner/**'
+      - '.github/workflows/test-observatory-runner.yml'
+  pull_request:
+    paths:
+      - 'cloudflare/observatory-runner/**'
+      - '.github/workflows/test-observatory-runner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Offline scheduled-dispatch tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate shared runner
+        run: node --test cloudflare/observatory-runner/tests/*.test.mjs
