@@ -55,6 +55,14 @@ def main() -> None:
                         f"Horizontal overflow at {width}px: {sizes}"
                     )
                     assert not errors, f"JavaScript errors at {width}: {errors}"
+                    # Every mobile tab must be wholly visible (not clipped offscreen).
+                    nav_rects = page.locator("#nav a").evaluate_all(
+                        "(nodes) => nodes.map(n => ({left:n.getBoundingClientRect().left,"
+                        +"right:n.getBoundingClientRect().right}))"
+                    )
+                    assert all(r["left"] >= -2 and r["right"] <= width + 2 for r in nav_rects), (
+                        f"Clipped navigation at {width}px: {nav_rects}"
+                    )
                     # Language switch + header navigation + dynamic chart selectors.
                     page.locator("#en").click()
                     assert page.evaluate("document.documentElement.lang") == "en"
