@@ -594,11 +594,11 @@ nav a.on,nav a[aria-current="location"]{
 <nav id="nav"><a href="#market" data-t="navMarket"></a><a href="#activity" data-t="activity"></a><a href="#wallets" data-t="wallets"></a><a href="#links" data-t="links"></a></nav>
 <div class="langs" aria-label="Language"><button id="ru" lang="ru">RU</button><button id="en" lang="en">EN</button></div>
 </div></header>
-<main class="wrap"><section class="hero"><div class="herotext"><div class="eyebrow"><i></i> TON BLOCKCHAIN</div><h1>Ludoman <em>Observatory</em></h1><p data-t="intro"></p><div class="introLinks"><a href="#market" data-t="toMarket"></a><a href="https://t.me/the1000ludoman">Telegram</a></div></div><div class="heroArt" role="img" aria-label="Ludoman"></div></section>
+<main class="wrap"><section class="hero"><div class="herotext"><div class="eyebrow"><i></i> TON BLOCKCHAIN</div><h1>Ludoman <em>Observatory</em></h1><p data-t="intro"></p><div class="introLinks"><a href="#market" data-t="toMarket"></a><a href="https://t.me/the1000ludoman" target="_blank" rel="noopener noreferrer">💬 Telegram</a></div></div><div class="heroArt" role="img" aria-label="Ludoman"></div></section>
 <section class="syncBar" aria-label="Data updates"><div><p id="syncStatus" role="status" aria-live="polite"></p><small id="syncDetail"></small></div><button id="refreshData" type="button"></button></section>
 <section class="panel graph" id="market"><div class="graphTop"><div><div class="eyebrow"><i></i> STON.FI <span>/</span> LUDOMAN · GRAM</div><h2 data-t="price"></h2><div class="capHeadline"><div id="lastPrice" class="price">—</div><span id="capChange" class="capChange"></span></div><p id="capPeriod" class="note"></p></div><div class="graphControls"><div id="currency" class="tabs" role="group"></div><div id="periods" class="tabs" role="group"></div></div></div>
 <div class="chartCaption"><span class="lineKey"></span><span id="chartUnit"></span><span class="sep">·</span><span data-t="burnKey"></span></div>
-<div id="plot"></div><section class="volumeBlock" aria-labelledby="volumeTitle"><div class="volumeHeading"><strong id="volumeTitle" data-t="volumeTitle"></strong><div class="volumeKeys"><span id="volumeBuys"></span><span id="volumeSells"></span></div></div><div id="tradeVolume"></div><small id="volumeEmpty" class="note" data-t="volumeEmpty"></small></section><div class="capRange"><span id="capLow"></span><span id="capHigh"></span></div><div id="readout" aria-live="polite"></div><div id="chartInfo" class="note"></div><p class="capMethod" data-t="capMethod"></p></section>
+<div id="plot"></div><section class="volumeBlock" aria-labelledby="volumeTitle"><div class="volumeHeading"><strong id="volumeTitle" data-t="volumeTitle"></strong><div class="volumeKeys"><span id="volumeBuys"></span><span id="volumeSells"></span></div></div><div id="tradeVolume"></div><small id="volumeEmpty" class="note" data-t="volumeEmpty"></small></section><div class="capRange"><span id="capLow"></span><span id="capHigh"></span></div></section>
 <section class="summary"><div class="sectionHeading"><h2 data-t="summary"></h2></div><div id="stats"></div></section>
 <section class="panel resources supplyPanel" aria-labelledby="supplyTitle">
 <h2 id="supplyTitle" data-t="supplyTitle"></h2>
@@ -606,10 +606,10 @@ nav a.on,nav a[aria-current="location"]{
 <a href="https://tonraffles.app/lock/EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb" target="_blank" rel="noopener noreferrer"><span data-t="supplyFrozen"></span><strong id="frozenTotal">—</strong><small data-t="supplyFrozenHint"></small></a>
 <a href="https://tonviewer.com/EQANDE3kcYMMSkumPIuj0BWLi2kTTRXng6FSYrvRbEpUv877" target="_blank" rel="noopener noreferrer"><span data-t="supplyStaked"></span><strong id="stakingTotal">—</strong><small data-t="supplyStakedHint"></small></a>
 </div></section>
-<div class="columns"><section id="activity" class="panel"><div class="sectionHeading"><h2 data-t="activity"></h2><span class="tag">STON.fi / DeDust</span></div><div id="filters" class="tabs"></div><label class="onlyBadges"><input type="checkbox" id="feedDomains"><span data-t="withBadges"></span></label><div class="tradeSize"><label><input type="checkbox" id="largeTrades"><span data-t="largeTrades"></span></label><label><span data-t="minimumSize"></span><input type="number" min="0" step="any" value="20" inputmode="decimal" id="minTradeSize" disabled></label></div><div id="feed"></div><button class="more" id="more"></button></section>
+<div class="columns"><section id="activity" class="panel"><div class="sectionHeading"><h2 data-t="activity"></h2><span class="tag">STON.fi / DeDust</span></div><div class="feedFilterBar"><div id="filters" class="tabs"></div><button type="button" id="badgeFilterToggle" aria-controls="badgeFilterPanel" aria-expanded="false"><span aria-hidden="true">⚙️</span> <span data-t="filterButton"></span> <span id="badgeFilterCount" aria-live="polite"></span></button></div><div id="badgeFilterPanel" class="filterPanel" hidden><label class="onlyBadges"><input type="checkbox" id="feedDomains"><span data-t="withBadges"></span></label><div class="tradeSize"><label><input type="checkbox" id="largeTrades"><span data-t="largeTrades"></span></label><label><span data-t="minimumSize"></span><input type="number" min="0" step="any" value="20" inputmode="decimal" id="minTradeSize" disabled></label></div><div class="filterBadgesHeading"><strong data-t="filterByBadges"></strong><button type="button" id="clearBadgeFilters" data-t="filterReset"></button></div><input type="search" id="badgeFilterSearch" class="badgeFilterSearch" autocomplete="off" spellcheck="false" aria-label="Search badges"><div id="badgeFilterList" class="badgeFilterList"></div><p class="filterHint" data-t="filterHint"></p></div><div id="feed"></div><button class="more" id="more"></button></section>
 <section id="wallets" class="panel"><div class="sectionHeading"><h2 data-t="wallets"></h2><span class="tag">TOP 20</span></div><div class="tabs" id="views"></div><div id="sellerPeriods" class="smallTabs"></div><details class="walletSearch"><summary data-t="walletSearch"></summary><form class="walletSearchForm" id="walletSearchForm"><input id="walletQuery" aria-label="TON" type="search" maxlength="253" spellcheck="false" autocapitalize="off" autocomplete="off" required><button id="walletFind" type="submit"></button></form><div class="walletResult" id="walletResult" role="status" hidden></div></details><details class="badgeLegend"><summary><span aria-hidden="true">ⓘ </span><span data-t="badgeLegend"></span></summary><dl><dt>OG</dt><dd data-t="badgeOg"></dd><dt>+888</dt><dd data-t="badgeFragment"></dd><dt>0000.ton</dt><dd data-t="badgeDigits"></dd><dt>author NFT</dt><dd data-t="badgeAuthor"></dd><dt>JVault</dt><dd data-t="badgeStaking"></dd><dt>VNUK</dt><dd data-t="badgeVnuk"></dd><dt>Joystick</dt><dd data-t="badgeJoystick"></dd><dt>Phoenix</dt><dd data-t="badgePhoenix"></dd><dt>ARNI</dt><dd data-t="badgeArni"></dd><dt>NAPIWAS</dt><dd data-t="badgeNapiwas"></dd><dt>🔵 NFT</dt><dd data-t="badgeBlue"></dd><dt>🔥</dt><dd data-t="badgeBurn"></dd></dl></details><div id="rank"></div></section></div>
 <section id="pools" class="panel resources" aria-labelledby="pools-title">
-<h2 id="pools-title"><span lang="ru">Торговые пулы</span><span lang="en">Trading pools</span></h2>
+<h2 id="pools-title"><span lang="ru">💧 Торговые пулы</span><span lang="en">💧 Trading pools</span></h2>
 <p class="poolIntro"><span lang="ru">Прямые пулы LUDOMAN. Биржа может выбрать другой маршрут обмена.</span><span lang="en">Direct LUDOMAN pools. The DEX may choose a different swap route.</span></p>
 <div class="poolGrid knownPools"><article class="poolCard">
 <h3>LUDOMAN / GRAM (TON)</h3><p>STON.fi V2 · <span lang="ru">комиссия 1%</span><span lang="en">1% fee</span></p>
@@ -1019,7 +1019,12 @@ try{lang=localStorage.getItem("ludoman-lang")==="en"?"en":"ru";currency=localSto
 const t=key=>texts[lang][key], day=86400, ranges=[3600,day,7*day,30*day,182*day,365*day];
 function el(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e}
 function link(href,txt){const a=el("a",txt);a.href=href;a.target="_blank";a.rel="noopener noreferrer";return a}
-function format(n,d=2){return Number(n).toLocaleString(lang,{maximumFractionDigits:d})}
+function format(n,d=1){
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1});
+}
 function stamp(s){return s?new Date(s*1000).toLocaleString(lang,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",year:"numeric"}):"—"}
 function short(w){return w?w.slice(0,6)+"…"+w.slice(-5):"—"}
 // Use a user-friendly TON address for explorer links and the visible short label.
@@ -1109,7 +1114,7 @@ function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
   }
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
-  appendDomainBadge(badges,digits.names,"digits",domains?.digitsAt,digits.linked);
+  appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
   function match(key){
     const source=data?.[key];
     return source?.asOf>=Date.now()/1000-24*3600 && source.wallets?.[wallet];
@@ -1206,7 +1211,10 @@ function select(id,labels,selected,onClick){const node=$(id);node.replaceChildre
 function freshness(s){if(!s?.asOf)return t("no");return t("updated")+" "+stamp(s.asOf)+(Date.now()/1000-s.asOf>4*3600?" · "+t("delayed"):"")}
 function coverage(section,cut){return section&&section.since>cut?t("partial")+" · "+t("since")+" "+stamp(section.since):""}
 function capFormat(n,compact=false){
- return Number(n).toLocaleString(lang,{maximumFractionDigits:compact?1:0,...(compact?{notation:'compact'}:{})});
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1,...(compact?{notation:"compact"}:{})});
 }
 function svg(tag,attrs){const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n}
 function volumeBars(start,end,width,left,right){
@@ -1390,7 +1398,7 @@ function chart(){
  const width=Math.max(240,plot.clientWidth||800),left=8,right=width-76,top=20,bottom=184;
  const box=svg('svg',{viewBox:`0 0 ${width} 238`,preserveAspectRatio:'none',role:'group','aria-label':t('chart')});
  const x=time=>left+(time-start)/ranges[period]*(right-left);
- const info=$('readout');info.replaceChildren();
+ // The chart stays interactive; public technical readout has been removed.
  const colour=model.change===null||model.change>=0?'#38dda0':'#ff2020';
  $('market').style.setProperty('--chart-colour',colour);
  if(points.length){
@@ -1418,7 +1426,7 @@ function chart(){
      active=i;const p=points[i],pos=coords[i];
      cursor.setAttribute('cx',pos[0]);cursor.setAttribute('cy',pos[1]);cursor.setAttribute('visibility','visible');
      cursorLine.setAttribute('d',`M${pos[0]} ${top}V${bottom}`);cursorLine.setAttribute('visibility','visible');
-     info.replaceChildren(document.createTextNode(stamp(p.row.time)+' · '+capWithUnit(p.cap)+' · '),tx(p.row));
+     // Cursor only: transaction details remain available in the operations feed.
    }
    inspect(active);
    box.setAttribute('tabindex','0');box.setAttribute('aria-description',t('pointHint'));
@@ -1439,8 +1447,8 @@ function chart(){
    const cx=Math.max(12,Math.min(right,x(r.time)));
    g.append(svg('rect',{x:cx-11,y:191,width:25,height:25,rx:6,fill:'#ffedd9'}));
    const icon=svg('text',{x:cx-7,y:209,style:'font-size:15px'});icon.textContent='🔥';g.append(icon);
-   const show=()=>info.replaceChildren(document.createTextNode(stamp(r.time)+' · '+t('burn')+' '+format(r.ludoman)+' LUDOMAN · '),tx(r));
-   g.addEventListener('click',e=>{e.preventDefault();show()});g.addEventListener('focus',show);box.append(g);
+   // Burn markers now link straight to the chain explorer without a readout.
+   box.append(g);
  }
  const axisTime=seconds=>new Date(seconds*1000).toLocaleString(lang,period===0?{hour:'2-digit',minute:'2-digit'}:period===1?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:{day:'numeric',month:'short',year:'2-digit'});
  for(const [pos,time,anchor] of [[left,start,'start'],[width-3,end,'end']]){
@@ -1448,7 +1456,7 @@ function chart(){
  }
  plot.append(box);
  volumeBars(start,end,width,left,right);
- $('chartInfo').textContent=[freshness(section),coverage(section,start),currency==='USD'&&snapshot.rates?.asOf?((lang==='ru'?'Курс GRAM/USD · ':'GRAM/USD rate · ')+freshness(snapshot.rates)):'',!model.tradeCount&&points.length?t('capNoTrades'):'',snapshot.holders?.asOf<section?.asOf?(lang==='ru'?'Предложение на ':'Supply as of ')+stamp(snapshot.holders.asOf):''].filter(Boolean).join(' · ');
+
 }
 function stats(){
  const trades=snapshot.trades,burns=snapshot.burns&&snapshot.zeroBurns?{...snapshot.burns,asOf:Math.min(snapshot.burns.asOf,snapshot.zeroBurns.asOf),rows:burnRows()}:snapshot.burns;
