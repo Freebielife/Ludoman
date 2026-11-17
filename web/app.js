@@ -51,7 +51,7 @@ const texts = {
     "burn": "Сжигание",
     "holders": "Держатели",
     "sellers": "Продавцы",
-    "more": "Ещё 30",
+    "more": "Показать ещё",
     "less": "Свернуть",
     "copy": "Копировать адрес",
     "copied": "Скопировано",
@@ -162,7 +162,7 @@ const texts = {
     "burn": "Burn",
     "holders": "Holders",
     "sellers": "Sellers",
-    "more": "30 more",
+    "more": "Show more",
     "less": "Collapse",
     "copy": "Copy address",
     "copied": "Copied",
@@ -751,17 +751,14 @@ function list(){
     &&(!$("feedDomains").checked||hasDomainBadge(r.wallet))
     &&[...selectedBadgeFilters].every(key=>hasWalletBadge(r.wallet,key)))
   .sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
- $("feed").replaceChildren(...combined.slice(0,expanded?50:20).map(r=>{
+ const visible=expanded?combined:combined.slice(0,10);
+ $("feed").replaceChildren(...visible.map(r=>{
    const item=el("article",undefined,"row operationRow trade-"+r.kind);
    const header=el("div",undefined,"opHeader");
    const title=el("strong",r.method==="zero"?t("toZero"):t(r.kind),"opKind "+r.kind);
    const date=el("time",stamp(r.time),"opDate");
    date.dateTime=new Date(r.time*1000).toISOString();
-   const toggle=el("button",undefined,"opToggle");
-   toggle.type="button";toggle.setAttribute("aria-label",t("operationDetails"));
-   toggle.setAttribute("aria-expanded","false");
-   toggle.append(el("span","⌄"));
-   header.append(title,date,toggle);
+   header.append(title,date);
    const amounts=el("div",undefined,"opAmounts");
    const token=el("div",undefined,"opAmount opToken");
    token.append(el("strong",format(r.ludoman),"opAmountValue"),el("small","LUDOMAN","opAmountUnit"));
@@ -771,21 +768,18 @@ function list(){
    amounts.append(token,gram);
    const wallet=el("div",undefined,"opWallet");
    wallet.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
-   const meta=[r.kind!=="burn"?r.dex||"DeDust":"",stamp(r.time)].filter(Boolean).join(" · ");
-   const details=el("div",undefined,"opMobile");
-   details.id="operation-"+r.tx;details.hidden=true;
-   details.append(el("small",meta),tx(r));
-   toggle.setAttribute("aria-controls",details.id);
-   toggle.onclick=()=>{
-     details.hidden=!details.hidden;
-     toggle.setAttribute("aria-expanded",String(!details.hidden));
-   };
-   item.append(header,amounts,wallet,details);
+   const transaction=link("https://gram.org/tx/"+r.tx,lang==="ru"?"Транзакция":"Transaction");
+   transaction.className="opTransaction";
+   transaction.title=r.tx;
+   item.append(header,amounts,wallet,transaction);
    return item;
  }));
  if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
- $("more").hidden=combined.length<=20;
- $("more").textContent=expanded?t("less"):t("more").replace("30",String(Math.min(30,combined.length-20)));
+ const more=$("more");
+ more.hidden=combined.length<=10;
+ more.setAttribute("aria-expanded",String(expanded));
+ more.setAttribute("aria-controls","feed");
+ more.textContent=expanded?t("less")+" ↑":t("more")+" ("+(combined.length-10)+") ↓";
 }
 function rankedSellers(source){
  const groups=new Map();
