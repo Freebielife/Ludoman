@@ -15,7 +15,9 @@ This document records the reusable design and interaction rules validated in **L
 - Wallet address or name gets its own row. **Only a four-digit `.ton` domain badge appears beside the wallet name**; OG, +888, project NFTs, JVault, burned-token badges, etc. appear below in a wrapping badge area.
 - Green buy and red sell styling; **animated fire / amber-red-gold color flow across the whole burn card**; reduce or disable animation when `prefers-reduced-motion` is enabled.
 - Collapsible **Filter** below the operation-type tabs: text search across available badge names, multi-select badge criteria (logical AND), existing minimum GRAM/domain controls, and Reset. All badge sources are configured by the project and must use the same ownership verification rules as the displayed badges.
-- Transaction details and Gram.org explorer links remain available on expansion. No chart technical readout, chart refresh details, or capitalization methodology paragraph below the chart.
+- **Exactly 10 most recent matching transactions** are shown initially; one arrow-marked button below the feed reveals the remaining matching entries (up to the 50 loaded by the existing feed) and can collapse them again.
+- Each transaction is already a complete card: **date and time only once in the top header**, with **no per-card expand/collapse button** and no repeated details. A lower-right **«Транзакция» / “Transaction”** hyperlink opens that transaction on gram.org directly.
+- No chart technical readout, chart refresh details, or capitalization methodology paragraph below the chart.
 
 ## Rankings
 
