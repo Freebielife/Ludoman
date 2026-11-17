@@ -59,6 +59,34 @@ def main() -> None:
                     assert page.locator("#readout, #chartInfo, .capMethod").count() == 0
                     assert page.locator("#feed .operationRow .opAmounts").count() > 0
                     assert page.locator("#feed .operationRow .opAmountValue").count() >= 2
+                    # Show exactly ten recent transactions initially; expand/collapse via one footer control.
+                    total = page.evaluate("(snapshot.trades?.rows?.length ?? 0) + burnRows().length")
+                    initial_count = min(10, total)
+                    assert page.locator("#feed .operationRow").count() == initial_count
+                    assert page.locator("#feed .operationRow .opToggle, #feed .operationRow .opMobile").count() == 0
+                    cards_ok = page.locator("#feed .operationRow").evaluate_all(
+                        """nodes => nodes.every(card =>
+                            card.querySelectorAll('.opHeader time').length === 1 &&
+                            card.querySelectorAll('.opDate').length === 1 &&
+                            card.querySelectorAll('.opTransaction').length === 1 &&
+                            card.querySelector('.opTransaction').textContent.trim() === 'Транзакция' &&
+                            card.querySelector('.opTransaction').href.startsWith('https://gram.org/tx/')
+                        )"""
+                    )
+                    assert cards_ok, f"Transaction-card structure or link incorrect at {width}px"
+                    if width == 390:
+                        page.locator("#activity").scroll_into_view_if_needed()
+                        page.screenshot(path=str(SCREENSHOTS / "ludoman-operations-390.png"))
+                    if total > 10:
+                        assert page.locator("#more").is_visible()
+                        assert page.locator("#more").get_attribute("aria-expanded") == "false"
+                        page.locator("#more").click()
+                        assert page.locator("#feed .operationRow").count() == min(total, 50)
+                        assert page.locator("#more").get_attribute("aria-expanded") == "true"
+                        page.locator("#more").click()
+                        assert page.locator("#feed .operationRow").count() == 10
+                    else:
+                        assert page.locator("#more").is_hidden()
                     assert page.locator("#badgeFilterPanel").is_hidden()
                     page.locator("#badgeFilterToggle").click()
                     assert page.locator("#badgeFilterPanel").is_visible()
