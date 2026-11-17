@@ -554,6 +554,29 @@ footer>span{color:#a8c2d8}
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* FIGMA TELEGRAM IOS UI KIT — SOURCE-ALIGNED
+   Reference: fIjhy6ddPFSXmia3DCvQa2
+   Dark selected tab: 6028:2120, row: 6023:2116, dark label: 6781:30558.
+   Accent #008BFF; 52px regular list-row minimum; rounded selected tab.
+   Native system font replaces Figma's licensed iostgico/SF Pro assets. */
+:root{--tg-accent:#008bff;--tg-blue:#008bff;--tg-blue-strong:#008bff;--tg-selected:#146ab1}
+nav a.on,nav a[aria-current="location"]{
+ color:#d8efff;background:#008bff28;box-shadow:inset 0 0 0 1px #008bff55}
+.langs button.on{background:var(--tg-selected);color:#fff}
+.graph .tabs .on,.columns .tabs .on,.columns .smallTabs .on{
+ border-radius:100px;background:#008bff2e;color:#97d7ff;
+ box-shadow:inset 0 0 0 1px #008bff70}
+.graph .tabs button,.columns .tabs button,.columns .smallTabs button{
+ min-height:40px;line-height:1.25}
+#activity .row,#wallets .row{min-height:52px}
+#activity .row .walletAddress,#wallets .row .walletAddress{line-height:1.45}
+#activity .row .badge,#wallets .row .badge{line-height:1.4}
+#refreshData,.walletSearchForm button{border-color:#008bff91}
+#refreshData:focus-visible,.walletSearchForm button:focus-visible{outline-color:#94d9ff}
+@media(max-width:800px){
+ nav a{min-height:44px}
+}
 </style>
 </head><body id="top">
 <header><div class="wrap nav">
