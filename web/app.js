@@ -2,6 +2,9 @@
 const MASTER="EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb";
 const texts = {
   "ru": {
+    "filterButton":"Фильтр", "filterByBadges":"Метки кошельков", "filterReset":"Сбросить",
+    "filterHint":"При выборе нескольких меток показываются кошельки, имеющие все выбранные метки.",
+    "filterSearchPlaceholder":"Найти метку…",
     "volumeTitle": "Объём сделок",
     "volumeEmpty": "За этот период сделки не найдены",
     "largeTrades": "Крупные сделки",
@@ -36,13 +39,13 @@ const texts = {
     "badgeDnsLinked": "Привязан в TON DNS",
     "badgeDigits": "Четырёхзначный .ton-домен в кошельке или подтверждённая привязка в TON DNS.",
     "badgeSub": "Владение субдоменом .socool.ton.",
-    "blueCollection":"Открыть NFT-коллекцию","activated":"Активация","burnBadge":"Сожжено от 1 000 токенов","toZero":"На нулевой адрес","operationDetails":"Подробности операции","supplyTitle":"Заморозка и стейкинг","supplyFrozen":"Заморожено","supplyFrozenHint":"Остатки в контрактах TonRaffles","supplyStaked":"В стейкинге","supplyStakedHint":"Позиции JVault, включая заявки на вывод",
+    "blueCollection":"Открыть NFT-коллекцию","activated":"Активация","burnBadge":"Сожжено от 1 000 токенов","toZero":"На нулевой адрес","operationDetails":"Подробности операции","supplyTitle":"🔒 Заморозка и стейкинг","supplyFrozen":"Заморожено","supplyFrozenHint":"Остатки в контрактах TonRaffles","supplyStaked":"В стейкинге","supplyStakedHint":"Позиции JVault, включая заявки на вывод",
     "intro": "Сделки, держатели и сжигания $LUDOMAN в сети TON.",
     "swap": "Обмен на STON.fi",
-    "price": "Капитализация LUDOMAN",
-    "summary": "LUDOMAN за 24 часа",
-    "activity": "Операции",
-    "wallets": "Рейтинги",
+    "price": "📈 Капитализация LUDOMAN",
+    "summary": "📊 LUDOMAN за 24 часа",
+    "activity": "🔄 Операции",
+    "wallets": "🏆 Рейтинги",
     "buy": "Покупка",
     "sell": "Продажа",
     "burn": "Сжигание",
@@ -65,10 +68,10 @@ const texts = {
     "chart": "Оценка капитализации",
     "burnCount": "Сжигания",
     "projectDirectory": "Сайт Ludoman",
-    "navMarket": "Рынок",
-    "links": "Полезные ссылки",
+    "navMarket": "📈 Рынок",
+    "links": "🔗 Полезные ссылки",
     "exploreContract": "Контракт на gram.org",
-    "toMarket": "К графику ↓",
+    "toMarket": "Открыть рынок",
     "up": "Наверх ↑",
     "capMethod": "Цена сделки на STON.fi × текущее общее предложение LUDOMAN, включая заблокированные токены. USD — по историческому курсу GRAM/USD от CoinGecko.",
     "capPartial": "Изменение по доступной истории",
@@ -110,6 +113,9 @@ const texts = {
     "noneTagged": "Среди проверенных адресов для этого фильтра записей нет."
   },
   "en": {
+    "filterButton":"Filter", "filterByBadges":"Wallet badges", "filterReset":"Reset",
+    "filterHint":"Selecting multiple badges shows wallets that have all selected badges.",
+    "filterSearchPlaceholder":"Search badges…",
     "volumeTitle": "Trade volume",
     "volumeEmpty": "No trades found for this period",
     "largeTrades": "Large trades",
@@ -144,13 +150,13 @@ const texts = {
     "badgeDnsLinked": "Linked in TON DNS",
     "badgeDigits": "A four-digit .ton domain owned by the wallet or verified as linked in TON DNS.",
     "badgeSub": "Ownership of a .socool.ton subdomain.",
-    "blueCollection":"Open NFT collection","activated":"Activated","burnBadge":"Burned at least 1,000 tokens","toZero":"Transfer to zero address","operationDetails":"Transaction details","supplyTitle":"Locks and staking","supplyFrozen":"Locked","supplyFrozenHint":"Balances in TonRaffles contracts","supplyStaked":"Staked","supplyStakedHint":"JVault positions, including pending withdrawals",
+    "blueCollection":"Open NFT collection","activated":"Activated","burnBadge":"Burned at least 1,000 tokens","toZero":"Transfer to zero address","operationDetails":"Transaction details","supplyTitle":"🔒 Locks and staking","supplyFrozen":"Locked","supplyFrozenHint":"Balances in TonRaffles contracts","supplyStaked":"Staked","supplyStakedHint":"JVault positions, including pending withdrawals",
     "intro": "Trades, holders and $LUDOMAN burns on TON.",
     "swap": "Swap on STON.fi",
-    "price": "LUDOMAN market cap",
-    "summary": "LUDOMAN in 24 hours",
-    "activity": "Activity",
-    "wallets": "Rankings",
+    "price": "📈 LUDOMAN market cap",
+    "summary": "📊 LUDOMAN in 24 hours",
+    "activity": "🔄 Activity",
+    "wallets": "🏆 Rankings",
     "buy": "Buy",
     "sell": "Sell",
     "burn": "Burn",
@@ -173,10 +179,10 @@ const texts = {
     "chart": "Estimated market cap",
     "burnCount": "Burns",
     "projectDirectory": "Ludoman website",
-    "navMarket": "Market",
-    "links": "Useful links",
+    "navMarket": "📈 Market",
+    "links": "🔗 Useful links",
     "exploreContract": "Contract on gram.org",
-    "toMarket": "View chart ↓",
+    "toMarket": "Open market",
     "up": "Back to top ↑",
     "capMethod": "STON.fi trade price × current total LUDOMAN supply, including locked tokens. USD uses historical GRAM/USD rates from CoinGecko.",
     "capPartial": "Change over available history",
@@ -682,46 +688,97 @@ function stats(){
  }));
 }
 function row(first,sub,value,last){const a=el("div"),b=el("div"),d=el("div",undefined,"row");a.append(first,sub);b.append(value,last);d.append(a,b);return d}
+
+/* Shared badge definitions: the same keys drive labels, filters and future observatories. */
+const badgeFilterDefs=[
+ ["og","OG"],["fragmentNumber","+888"],["digits","0000.ton"],
+ ["author","author NFT"],["staking","JVault"],["vnuk","VNUK"],
+ ["joystick","Joystick"],["phoenix","Phoenix"],["arni","ARNI"],
+ ["napiwas","NAPIWAS"],["blueNft","🔵 NFT"],["burner","🔥 Burn"]
+];
+const selectedBadgeFilters=new Set();
+function hasWalletBadge(wallet,key){
+ if(key==="digits")return numericDomains(wallet).names.length>0;
+ if(key==="fragmentNumber"){
+   const item=snapshot.fragmentNumbers?.byWallet?.[wallet];
+   return Boolean(item?.owns&&item.checkedAt>=Date.now()/1000-2*day);
+ }
+ if(key==="og"){
+   const activated=snapshot.identity?.byWallet?.[wallet]?.activated;
+   if(!activated)return false;
+   const date=new Date(activated*1000),fifth=new Date(date);
+   fifth.setUTCFullYear(date.getUTCFullYear()+5);
+   if(fifth.getUTCMonth()!==date.getUTCMonth())fifth.setUTCDate(0);
+   return Date.now()>fifth.getTime();
+ }
+ if(key==="burner")return (burnTotals?.get(wallet)||0n)>=1000n*10n**9n;
+ const sources=snapshot.badges?.sources;
+ const valid=k=>sources?.[k]?.asOf>=Date.now()/1000-24*3600&&Boolean(sources[k].wallets?.[wallet]);
+ return valid(key)||((key==="vnuk"||key==="joystick")&&valid(key+"Nft"));
+}
+function renderBadgeFilterList(){
+ const list=$("badgeFilterList");
+ if(!list)return;
+ const needle=($("badgeFilterSearch")?.value||"").trim().toLocaleLowerCase();
+ list.replaceChildren();
+ for(const [key,label] of badgeFilterDefs){
+   if(!label.toLocaleLowerCase().includes(needle))continue;
+   const item=el("label",undefined,"badgeFilterItem");
+   const check=el("input");check.type="checkbox";check.checked=selectedBadgeFilters.has(key);
+   check.onchange=()=>{if(check.checked)selectedBadgeFilters.add(key);else selectedBadgeFilters.delete(key);expanded=false;listOperations();};
+   item.append(check,el("span",label));list.append(item);
+ }
+ $("badgeFilterCount").textContent=selectedBadgeFilters.size?"("+selectedBadgeFilters.size+")":"";
+}
+function listOperations(){list();}
+
 function list(){
  const kinds=["all","buy","sell","burn"];
  select("filters",[t("filterAll"),t("buys"),t("sells"),t("burnCount")],kinds.indexOf(feedKind),i=>{feedKind=kinds[i];expanded=false;list()});
- const large=$("largeTrades").checked;
- const threshold=$("minTradeSize").valueAsNumber;
+ renderBadgeFilterList();
+ const large=$("largeTrades").checked,threshold=$("minTradeSize").valueAsNumber;
  $("minTradeSize").disabled=!large;
  const combined=[...(snapshot.trades?.rows||[]),...burnRows()]
-   .filter(r=>!large||(r.kind!=="burn"&&Number.isFinite(threshold)&&threshold>=0&&Number(r.ton)>=threshold))
-   .filter(r=>(feedKind==="all"||r.kind===feedKind)&&(!$("feedDomains").checked||hasDomainBadge(r.wallet))).sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
+  .filter(r=>!large||(r.kind!=="burn"&&Number.isFinite(threshold)&&threshold>=0&&Number(r.ton)>=threshold))
+  .filter(r=>(feedKind==="all"||r.kind===feedKind)
+    &&(!$("feedDomains").checked||hasDomainBadge(r.wallet))
+    &&[...selectedBadgeFilters].every(key=>hasWalletBadge(r.wallet,key)))
+  .sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
  $("feed").replaceChildren(...combined.slice(0,expanded?50:20).map(r=>{
-   const who=el("small");who.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
-   const label=r.method==="zero"?t("toZero"):t(r.kind);
-   const top=el("b");top.append(el("span",label,"badge "+r.kind),document.createTextNode(format(r.ludoman,4)+" LUDOMAN"));
-   const right=el("small",r.ton?format(r.ton,4)+" GRAM":"");
-   const meta=[r.kind!=="burn"?r.dex||"DeDust":"",stamp(r.time)].filter(Boolean).join(" · ");
-   const desktop=el("small",meta,"opDesktop");
-   desktop.append(document.createElement("br"), tx(r));
+   const item=el("article",undefined,"row operationRow trade-"+r.kind);
+   const header=el("div",undefined,"opHeader");
+   const title=el("strong",r.method==="zero"?t("toZero"):t(r.kind),"opKind "+r.kind);
+   const date=el("time",stamp(r.time),"opDate");
+   date.dateTime=new Date(r.time*1000).toISOString();
    const toggle=el("button",undefined,"opToggle");
-   toggle.type="button";
-   toggle.setAttribute("aria-label",t("operationDetails"));
+   toggle.type="button";toggle.setAttribute("aria-label",t("operationDetails"));
    toggle.setAttribute("aria-expanded","false");
-   const chevron=el("span");
-   chevron.setAttribute("aria-hidden","true");
-   toggle.append(chevron);
-   const full=el("small",meta,"opMobile");
-   full.id="operation-"+r.tx;
-   full.hidden=true;
-   full.append(document.createElement("br"),tx(r));
-   toggle.setAttribute("aria-controls",full.id);
+   toggle.append(el("span","⌄"));
+   header.append(title,date,toggle);
+   const amounts=el("div",undefined,"opAmounts");
+   const token=el("div",undefined,"opAmount opToken");
+   token.append(el("strong",format(r.ludoman),"opAmountValue"),el("small","LUDOMAN","opAmountUnit"));
+   const gram=el("div",undefined,"opAmount opGram");
+   const hasGram=r.ton!=null&&Number(r.ton)>0;
+   gram.append(el("strong",hasGram?format(r.ton):"—","opAmountValue"),el("small","GRAM","opAmountUnit"));
+   amounts.append(token,gram);
+   const wallet=el("div",undefined,"opWallet");
+   wallet.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
+   const meta=[r.kind!=="burn"?r.dex||"DeDust":"",stamp(r.time)].filter(Boolean).join(" · ");
+   const details=el("div",undefined,"opMobile");
+   details.id="operation-"+r.tx;details.hidden=true;
+   details.append(el("small",meta),tx(r));
+   toggle.setAttribute("aria-controls",details.id);
    toggle.onclick=()=>{
-     full.hidden=!full.hidden;
-     toggle.setAttribute("aria-expanded",String(!full.hidden));
+     details.hidden=!details.hidden;
+     toggle.setAttribute("aria-expanded",String(!details.hidden));
    };
-   const item=row(top,who,right,desktop);
-   item.classList.add("operationRow","trade-"+r.kind);
-   item.append(toggle,full);
-   return item
+   item.append(header,amounts,wallet,details);
+   return item;
  }));
- if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked?"noneTagged":"none"),"empty"));
- $("more").hidden=combined.length<=20;$("more").textContent=expanded?t("less"):t("more").replace("30",String(Math.min(30,combined.length-20)));
+ if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
+ $("more").hidden=combined.length<=20;
+ $("more").textContent=expanded?t("less"):t("more").replace("30",String(Math.min(30,combined.length-20)));
 }
 function rankedSellers(source){
  const groups=new Map();
