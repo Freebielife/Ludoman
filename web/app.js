@@ -845,10 +845,24 @@ const brandLabels={ludoman:"L",ton:"◆",gram:"G",kito:"K",usdt:"₮",usda:"U",r
   telegram:"",x:"",github:"GH",ston:"S",dedust:"D",tonco:"C",gecko:"G",
   gramorg:"◎",tonviewer:"TV",dexscreener:"DX",tonraffles:"TR",
   jvault:"JV",getgems:"GG",fragment:"F",web:"W",explorer:"↗"};
+/* Owner-approved source artwork is embedded in index.html, with no network calls. */
+function applyApprovedBrand(node,kind){
+ const atlas=typeof window==="object"?window.OBSERVATORY_BRAND_ATLAS:null;
+ const pos=atlas?.positions?.[kind];
+ if(!atlas?.image||!Array.isArray(pos))return false;
+ const artwork=el("span",undefined,"brandTile");
+ artwork.style.backgroundImage='url("'+atlas.image+'")';
+ artwork.style.backgroundSize=(atlas.cols*100)+"% "+(atlas.rows*100)+"%";
+ artwork.style.backgroundPosition=(100*pos[0]/(atlas.cols-1))+"% "+(100*pos[1]/(atlas.rows-1))+"%";
+ node.classList.add("hasApprovedArtwork");
+ node.append(artwork);
+ return true;
+}
 function brandMarkNode(kind){
  const icon=el("span",undefined,"brandGlyph brand-"+kind);
  icon.setAttribute("aria-hidden","true");
  // Only approved and locally embedded brand graphics may replace placeholders.
+ if(applyApprovedBrand(icon,kind))return icon;
  const approved=typeof window==="object"?window.OBSERVATORY_ICON_PACK?.[kind]:null;
  if(approved){
    const logo=el("img");
@@ -875,6 +889,7 @@ function brandMarkNode(kind){
  return icon;
 }
 function markFromLink(anchor){
+ if(anchor.closest("#supply")&&anchor.querySelector("#stakingTotal"))return "jvault";
  let host;
  try{host=new URL(anchor.href,location.href).hostname.toLowerCase()}catch{return null}
  if(host==="t.me"||host==="telegram.me")return"telegram";
@@ -895,6 +910,14 @@ function markFromLink(anchor){
  return null;
 }
 function decorateBrandLinks(){
+ const headerIcon=document.querySelector(".brand .brandMark");
+ if(headerIcon&&!headerIcon.querySelector(".brandTile"))applyApprovedBrand(headerIcon,"ludoman");
+ // +888 and author NFT stay legible; their service artwork appears in the badge guide.
+ const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};
+ for(const label of document.querySelectorAll("#wallets .badgeLegend dt")){
+  const kind=legendBrands[label.textContent.trim()];
+  if(kind&&!label.querySelector(".brandGlyph"))label.prepend(brandMarkNode(kind),document.createTextNode(" "));
+ }
  const selector=".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a";
  for(const anchor of document.querySelectorAll(selector)){
    if(anchor.querySelector(".brandGlyph"))continue;
@@ -916,6 +939,20 @@ function decorateBrandLinks(){
    else if(descriptor.includes("tonco"))card.classList.add("dex-tonco");
    else if(hasDedust)card.classList.add("dex-dedust");
    else if(hasSton)card.classList.add("dex-ston");
+   // Identify the actual DEX on its pool card, even when actions link to a chart.
+   const venueLine=card.querySelector("p");
+   if(venueLine&&!venueLine.querySelector(".dexMarks")){
+     const venueNames=[];
+     if(hasDedust)venueNames.push("dedust");
+     if(hasSton)venueNames.push("ston");
+     if(descriptor.includes("tonco"))venueNames.push("tonco");
+     if(venueNames.length){
+       const marks=el("span",undefined,"dexMarks");
+       marks.setAttribute("aria-hidden","true");
+       for(const venue of venueNames)marks.append(brandMarkNode(venue));
+       venueLine.prepend(marks,document.createTextNode(" "));
+     }
+   }
    // Display recognisable token marks rather than text alone. Preserve symbols.
    const name=card.querySelector("h3");
    if(name&&!name.querySelector(".brandGlyph")){

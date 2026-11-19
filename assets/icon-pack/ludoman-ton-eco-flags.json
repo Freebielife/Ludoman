@@ -4,8 +4,8 @@
   "pack": "TONecoFlags",
   "pack_url": "https://t.me/addemoji/TONecoFlags",
   "mapping_status": "user_selected_for_future_use",
-  "enabled_on_site": false,
-  "notes": "User-provided flag numbers; saved for future visual updates. Do not treat as independent verification or apply to other observatories without approval.",
+  "enabled_on_site": true,
+  "notes": "User-approved TONecoFlags numbers, embedded as static WebP atlas in standalone Ludoman HTML. #196 is a deliberate common placeholder for TON Raffles, USDA, RTON and WEB; it is not an official logo. Does not apply to the independent KITO site.",
   "entries": [
     {
       "project": "TON",
@@ -66,6 +66,30 @@
       "project": "X",
       "number": 126,
       "display_number": "126"
+    },
+    {
+      "project": "TON Raffles",
+      "number": 196,
+      "display_number": "196",
+      "status": "generic_fallback_selected_by_owner"
+    },
+    {
+      "project": "USDA",
+      "number": 196,
+      "display_number": "196",
+      "status": "generic_fallback_selected_by_owner"
+    },
+    {
+      "project": "RTON",
+      "number": 196,
+      "display_number": "196",
+      "status": "generic_fallback_selected_by_owner"
+    },
+    {
+      "project": "WEB",
+      "number": 196,
+      "display_number": "196",
+      "status": "generic_fallback_selected_by_owner"
     }
   ]
 }

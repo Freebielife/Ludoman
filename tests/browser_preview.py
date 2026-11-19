@@ -64,8 +64,20 @@ def main() -> None:
                     assert page.locator("#pools .poolCard .brandGlyph").count() >= 2
                     assert page.locator("#links a.brandedLink .brandGlyph").count() >= 4
                     assert page.evaluate("Boolean(window.OBSERVATORY_ICON_PACK?.telegram && window.OBSERVATORY_ICON_PACK?.github)")
-                    assert page.locator('.introLinks a[href*="t.me"] .brandGlyph img').count() == 1
-                    assert page.locator('#links .brandGlyph img').count() >= 2
+                    # Approved emoji imagery is a self-contained, color WebP sprite.
+                    assert page.evaluate("Boolean(window.OBSERVATORY_BRAND_ATLAS?.positions?.gram)")
+                    assert page.locator('.introLinks a[href*="t.me"] .brandGlyph .brandTile').count() == 1
+                    assert page.locator('#links .brandGlyph .brandTile').count() >= 4
+                    assert page.locator('.brand .brandMark .brandTile').count() == 1
+                    assert page.locator('#pools .poolCard .dexMarks .brandTile').count() >= 2
+                    assert page.locator('#supply .brandGlyph .brandTile').count() == 2
+                    assert page.locator('#links .brandGlyph img').count() >= 1
+                    assert page.evaluate("""async () => {
+                      const picture = new Image();
+                      picture.src = window.OBSERVATORY_BRAND_ATLAS.image;
+                      await picture.decode();
+                      return picture.naturalWidth === 240 && picture.naturalHeight === 160;
+                    }""")
                     page.wait_for_function("""() => [...document.querySelectorAll('.brandGlyph img')]
                         .every(n => n.complete && n.naturalWidth > 0)""", timeout=10000)
                     assert page.locator('.brandGlyph img').evaluate_all(

@@ -570,3 +570,18 @@ html{scroll-behavior:smooth}
 /* Observatory icon pack — local verified vector logos (offline only). */
 .brandGlyph img{display:block;width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1)}
 .brandGlyph.brand-github img{width:17px;height:17px}
+/* Owner-approved flags and token emblems retain full color (SVG glyphs still use existing fallback styles). */
+.brandGlyph.hasApprovedArtwork,.brandMark.hasApprovedArtwork{background-image:none!important}
+.brandGlyph.hasApprovedArtwork{background:transparent!important;border-color:transparent!important;box-shadow:none;padding:0;overflow:visible}
+.brandGlyph .brandTile,.brandMark .brandTile{display:block;width:100%;height:100%;flex:none;background-repeat:no-repeat;pointer-events:none}
+.brandGlyph .brandTile{border-radius:4px}
+.brandMark.hasApprovedArtwork{display:inline-flex;overflow:hidden}
+.brandMark .brandTile{border-radius:50%}
+.brandGlyph.brand-kito.hasApprovedArtwork{background:#d4e2f3!important;border:1px solid #92b1d7!important;border-radius:5px}
+
+/* Compact, full-color DEX emblems in trading-pool descriptions. */
+#pools .poolCard .dexMarks{display:inline-flex;align-items:center;vertical-align:middle;gap:3px;margin-right:2px}
+#pools .poolCard .dexMarks .brandGlyph{width:17px;height:17px;min-width:17px;flex:0 0 17px;border-radius:4px}
+
+/* Wallet-service logos belong to the guide, without changing the identity badges. */
+#wallets .badgeLegend dt .brandGlyph{width:17px;height:17px;min-width:17px;flex:0 0 17px;vertical-align:middle;margin-right:4px}

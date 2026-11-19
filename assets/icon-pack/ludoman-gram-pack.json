@@ -3,8 +3,8 @@
   "project": "Ludoman",
   "pack": "Gram by @gramnews by @EmojiSaverBot",
   "mapping_status": "user_selected_for_future_use",
-  "enabled_on_site": false,
-  "notes": "Use GRAM pack logo #02 as the GRAM token logo throughout the Ludoman observatory site only. This does not replace the LUDOMAN token/project logo. The visual change is not yet applied to the site. Separate numbering from TONecoFlags.",
+  "enabled_on_site": true,
+  "notes": "Approved GRAM #02 icon from user-supplied GRAM pack; embedded in the offline atlas for Ludoman. Separate numbering from TONecoFlags. Does not change independent KITO site.",
   "entries": [
     {
       "project": "GRAM",

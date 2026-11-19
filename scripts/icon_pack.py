@@ -37,8 +37,30 @@ def load_pack(root: Path=PACK_ROOT)->dict[str,str]:
         out[entry["id"]]="data:image/svg+xml;base64,"+base64.b64encode(raw.encode()).decode()
     return out
 
+def load_brand_atlas(root: Path=PACK_ROOT)->dict:
+    """Load the owner-approved static emoji atlas, validating it before embedding."""
+    data=json.loads((root/"approved-brand-atlas.json").read_text())
+    rows,cols=data["rows"],data["columns"]
+    if not isinstance(rows,int) or not isinstance(cols,int) or not (1<rows<=8 and 1<cols<=8):
+        raise ValueError("Invalid brand atlas grid")
+    image_data=base64.b64decode(data["image_base64"],validate=True)
+    if not image_data.startswith(b"RIFF") or image_data[8:12]!=b"WEBP" or len(image_data)>128000:
+        raise ValueError("Invalid or oversized brand WebP atlas")
+    positions=data["positions"]
+    if not isinstance(positions,dict) or not positions or any(
+        not isinstance(name,str) or not isinstance(cell,list) or len(cell)!=2 or
+        not all(isinstance(v,int) for v in cell) or
+        not (0<=cell[0]<cols and 0<=cell[1]<rows)
+        for name,cell in positions.items()
+    ):
+        raise ValueError("Invalid brand atlas positions")
+    return {"image":"data:image/webp;base64,"+data["image_base64"],
+            "cols":cols,"rows":rows,"positions":positions}
+
 def embedded_script(root: Path=PACK_ROOT)->str:
-    return "window.OBSERVATORY_ICON_PACK=Object.freeze("+json.dumps(load_pack(root),separators=(",",":"))+");"
+    icons="window.OBSERVATORY_ICON_PACK=Object.freeze("+json.dumps(load_pack(root),separators=(",",":"))+");"
+    brands="window.OBSERVATORY_BRAND_ATLAS=Object.freeze("+json.dumps(load_brand_atlas(root),separators=(",",":"))+");"
+    return icons+brands
 
 def gallery(root: Path=PACK_ROOT, output: Path=ROOT/"build"/"icon-gallery.html")->Path:
     manifest=json.loads((root/"manifest.json").read_text())
