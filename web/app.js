@@ -394,6 +394,7 @@ function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDom
   wrapper.append(address);
   // Flag only identified service accounts. Unknown wallets are never guessed.
   if(holder&&typeof identity?.role==="string"&&identity.role.trim()){
+    wrapper.classList.add("serviceWallet");
     const service=el("span","⚙️","serviceGear");
     service.title=(lang==="ru"?"Сервисный кошелёк · ":"Service wallet · ")+identity.role;
     service.setAttribute("aria-label",service.title);
@@ -763,7 +764,9 @@ function list(){
    titleGroup.append(title);
    if(r.kind==="buy"||r.kind==="sell"){
      const mini=svg("svg",{viewBox:"0 0 52 28","class":"trendMini trend-"+r.kind,"aria-hidden":"true",focusable:"false"});
-     mini.append(svg("path",{d:r.kind==="buy"?"M3 24 L13 18 L21 20 L30 11 L39 13 L49 3":"M3 4 L13 9 L21 7 L30 17 L39 15 L49 25","class":"trendLine"}));
+     const trendPath=r.kind==="buy"?"M3 24 L13 18 L21 20 L30 11 L39 13 L49 3":"M3 4 L13 9 L21 7 L30 17 L39 15 L49 25";
+     mini.append(svg("path",{d:trendPath,"class":"trendBase"}));
+     mini.append(svg("path",{d:trendPath,"class":"trendLine"}));
      mini.append(svg("circle",{cx:"49",cy:r.kind==="buy"?"3":"25",r:"2.5","class":"trendDot"}));
      titleGroup.append(mini);
    }
