@@ -578,3 +578,7 @@ html{scroll-behavior:smooth}
 .brandMark.hasApprovedArtwork{display:inline-flex;overflow:hidden}
 .brandMark .brandTile{border-radius:50%}
 .brandGlyph.brand-kito.hasApprovedArtwork{background:#d4e2f3!important;border:1px solid #92b1d7!important;border-radius:5px}
+
+/* Compact, full-color DEX emblems in trading-pool descriptions. */
+#pools .poolCard .dexMarks{display:inline-flex;align-items:center;vertical-align:middle;gap:3px;margin-right:2px}
+#pools .poolCard .dexMarks .brandGlyph{width:17px;height:17px;min-width:17px;flex:0 0 17px;border-radius:4px}
