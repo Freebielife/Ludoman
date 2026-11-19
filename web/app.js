@@ -933,6 +933,20 @@ function decorateBrandLinks(){
    else if(descriptor.includes("tonco"))card.classList.add("dex-tonco");
    else if(hasDedust)card.classList.add("dex-dedust");
    else if(hasSton)card.classList.add("dex-ston");
+   // Identify the actual DEX on its pool card, even when actions link to a chart.
+   const venueLine=card.querySelector("p");
+   if(venueLine&&!venueLine.querySelector(".dexMarks")){
+     const venueNames=[];
+     if(hasDedust)venueNames.push("dedust");
+     if(hasSton)venueNames.push("ston");
+     if(descriptor.includes("tonco"))venueNames.push("tonco");
+     if(venueNames.length){
+       const marks=el("span",undefined,"dexMarks");
+       marks.setAttribute("aria-hidden","true");
+       for(const venue of venueNames)marks.append(brandMarkNode(venue));
+       venueLine.prepend(marks,document.createTextNode(" "));
+     }
+   }
    // Display recognisable token marks rather than text alone. Preserve symbols.
    const name=card.querySelector("h3");
    if(name&&!name.querySelector(".brandGlyph")){
