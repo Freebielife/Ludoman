@@ -52,6 +52,8 @@ export async function dispatchDue({ scheduledTime, token, registry = projects, f
       method: "POST",
       headers: {
         Accept: "application/vnd.github+json",
+        // GitHub REST API rejects requests without a valid User-Agent (HTTP 403).
+        "User-Agent": "Freebie-Observatory-Runner/1.0",
         Authorization: "Bearer " + token,
         "X-GitHub-Api-Version": GITHUB_API_VERSION,
         "Content-Type": "application/json"
