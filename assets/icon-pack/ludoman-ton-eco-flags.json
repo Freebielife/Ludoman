@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "project": "Ludoman",
+  "pack": "TONecoFlags",
+  "pack_url": "https://t.me/addemoji/TONecoFlags",
+  "mapping_status": "user_selected_for_future_use",
+  "enabled_on_site": false,
+  "notes": "User-provided flag numbers; saved for future visual updates. Do not treat as independent verification or apply to other observatories without approval.",
+  "entries": [
+    {
+      "project": "TON",
+      "number": 2,
+      "display_number": "002"
+    },
+    {
+      "project": "DeDust",
+      "number": 20,
+      "display_number": "020"
+    },
+    {
+      "project": "STON.fi",
+      "number": 19,
+      "display_number": "019"
+    },
+    {
+      "project": "Tonco",
+      "number": 21,
+      "display_number": "021"
+    },
+    {
+      "project": "JVault",
+      "number": 167,
+      "display_number": "167"
+    },
+    {
+      "project": "Getgems",
+      "number": 7,
+      "display_number": "007"
+    }
+  ]
+}
