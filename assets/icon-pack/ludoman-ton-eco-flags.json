@@ -36,6 +36,36 @@
       "project": "Getgems",
       "number": 7,
       "display_number": "007"
+    },
+    {
+      "project": "USDT",
+      "number": 33,
+      "display_number": "033"
+    },
+    {
+      "project": "Fragment",
+      "number": 5,
+      "display_number": "005"
+    },
+    {
+      "project": "DexScreener",
+      "number": 104,
+      "display_number": "104"
+    },
+    {
+      "project": "Tonviewer",
+      "number": 91,
+      "display_number": "091"
+    },
+    {
+      "project": "Telegram",
+      "number": 1,
+      "display_number": "001"
+    },
+    {
+      "project": "X",
+      "number": 126,
+      "display_number": "126"
     }
   ]
 }
