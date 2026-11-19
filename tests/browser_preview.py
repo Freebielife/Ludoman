@@ -63,6 +63,14 @@ def main() -> None:
                     assert page.locator("#pools .poolCard.dex-dedust").count() >= 1
                     assert page.locator("#pools .poolCard .brandGlyph").count() >= 2
                     assert page.locator("#links a.brandedLink .brandGlyph").count() >= 4
+                    assert page.evaluate("Boolean(window.OBSERVATORY_ICON_PACK?.telegram && window.OBSERVATORY_ICON_PACK?.github)")
+                    assert page.locator('.introLinks a[href*="t.me"] .brandGlyph img').count() == 1
+                    assert page.locator('#links .brandGlyph img').count() >= 2
+                    page.wait_for_function("""() => [...document.querySelectorAll('.brandGlyph img')]
+                        .every(n => n.complete && n.naturalWidth > 0)""", timeout=10000)
+                    assert page.locator('.brandGlyph img').evaluate_all(
+                        "(nodes) => nodes.every(n => n.src.startsWith('data:image/svg+xml;base64,'))"
+                    )
                     assert not errors, f"JavaScript errors at {width}: {errors}"
                     # The chart stays visible, but user-facing technical diagnostics are gone.
                     assert page.locator("#readout, #chartInfo, .capMethod").count() == 0
