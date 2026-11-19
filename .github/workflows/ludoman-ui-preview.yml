@@ -1,0 +1,57 @@
+name: Validate Ludoman UI refinement
+
+on:
+  push:
+    branches:
+      - design/ludoman-refinement-20261119
+    paths:
+      - 'web/**'
+      - 'build.py'
+      - 'tests/**'
+      - '.github/workflows/ludoman-ui-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ludoman-ui-preview-v12
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        run: |
+          node --test tests/*.test.cjs
+          python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build self-contained upload-ready HTML
+        run: |
+          python3 build.py
+          python3 verify.py
+      - name: Install Chromium
+        run: |
+          python3 -m pip install --quiet playwright
+          python3 -m playwright install chromium
+      - name: Check mobile and desktop layouts and interactive controls
+        run: python3 tests/browser_preview.py
+      - name: Export screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ludoman-ui-refinement-screenshots
+          path: build/screenshots
+          if-no-files-found: ignore
+      - name: Export standalone index.html
+        uses: actions/upload-artifact@v4
+        with:
+          name: ludoman-ui-refinement-index
+          path: index.html
+          if-no-files-found: error
+          retention-days: 7
