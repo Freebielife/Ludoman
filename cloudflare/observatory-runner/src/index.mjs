@@ -59,7 +59,35 @@ export async function dispatchDue({ scheduledTime, token, registry = projects, f
       body: JSON.stringify({ ref: project.ref })
     });
     if (!response.ok) {
-      throw new Error(project.id + ": GitHub dispatch HTTP " + response.status);
+      // Classify only known GitHub diagnostics; never print raw response bodies
+      // or authentication credentials to Worker logs.
+      let reason = "unknown";
+      if (typeof response.json === "function") {
+        try {
+          const body = await response.json();
+          const message = typeof body?.message === "string" ? body.message.toLowerCase() : "";
+          if (message.includes("resource not accessible by personal access token") ||
+              message.includes("resource not accessible by integration")) {
+            reason = "token-repository-permissions";
+          } else if (message.includes("secondary rate limit") || message.includes("abuse detection")) {
+            reason = "secondary-rate-limit";
+          } else if (message.includes("rate limit exceeded")) {
+            reason = "rate-limit";
+          } else if (message.includes("bad credentials")) {
+            reason = "invalid-credentials";
+          }
+        } catch { /* GitHub may respond without a JSON body. */ }
+      }
+      const acceptedPermissions = response.headers?.get?.("x-accepted-github-permissions");
+      const permissions = typeof acceptedPermissions === "string" &&
+        acceptedPermissions.length <= 120 && /^[a-z_,;=\\s]+$/.test(acceptedPermissions)
+        ? acceptedPermissions.trim() : "not-provided";
+      const remaining = response.headers?.get?.("x-ratelimit-remaining");
+      const rate = typeof remaining === "string" && /^\\d{1,8}$/.test(remaining)
+        ? remaining : "unknown";
+      throw new Error(project.id + ": GitHub dispatch HTTP " + response.status +
+        " reason=" + reason + " required_permissions=" + permissions +
+        " rate_remaining=" + rate);
     }
     return project.id;
   }));
