@@ -44,7 +44,7 @@ def main() -> None:
                     )
                     page.wait_for_selector("#stats .stat", timeout=15000)
                     page.wait_for_selector("#plot svg", timeout=15000)
-                    for section in ("market", "activity", "wallets", "pools", "links"):
+                    for section in ("market", "activity", "wallets", "pools", "supply", "links"):
                         assert page.locator(f"#{section}").count() == 1, section
                     sizes = page.evaluate("""() => ({
                         viewport: window.innerWidth,
@@ -54,6 +54,15 @@ def main() -> None:
                     assert max(sizes["document"], sizes["body"]) <= sizes["viewport"] + 2, (
                         f"Horizontal overflow at {width}px: {sizes}"
                     )
+                    assert page.locator("#nav a").count() == 6
+                    assert page.locator("#nav a[href='#pools']").count() == 1
+                    assert page.locator("#nav a[href='#supply']").count() == 1
+                    assert page.locator("#supply").evaluate("(el) => el.offsetTop") > page.locator("#wallets").evaluate("(el) => el.offsetTop")
+                    assert page.locator("#supply .supplyUsd").count() == 2
+                    assert page.locator("#pools .poolCard.dex-ston").count() >= 1
+                    assert page.locator("#pools .poolCard.dex-dedust").count() >= 1
+                    assert page.locator("#pools .poolCard .brandGlyph").count() >= 2
+                    assert page.locator("#links a.brandedLink .brandGlyph").count() >= 4
                     assert not errors, f"JavaScript errors at {width}: {errors}"
                     # The chart stays visible, but user-facing technical diagnostics are gone.
                     assert page.locator("#readout, #chartInfo, .capMethod").count() == 0
@@ -74,6 +83,13 @@ def main() -> None:
                         )"""
                     )
                     assert cards_ok, f"Transaction-card structure or link incorrect at {width}px"
+                    assert page.locator("#feed .operationRow .opFooter .opWallet").count() == initial_count
+                    assert page.locator("#feed .operationRow .opFooter .opTransaction").count() == initial_count
+                    assert page.locator("#feed .operationRow .opTransaction").first.evaluate(
+                        "(a) => getComputedStyle(a, '::after').content"
+                    ) in ("none", "normal", '""')
+                    assert page.locator("#feed .operationRow.trade-buy .trendMini").count() > 0
+                    assert page.locator("#feed .operationRow.trade-sell .trendMini").count() > 0
                     if width == 390:
                         page.locator("#activity").scroll_into_view_if_needed()
                         page.screenshot(path=str(SCREENSHOTS / "ludoman-operations-390.png"))
@@ -118,6 +134,10 @@ def main() -> None:
                     page.locator("#views button").nth(0).click()
                     assert page.locator("#rank .diamondHands").count() == min(10, page.locator("#rank .rankingRow").count())
                     assert page.locator("#rank .paperHands").count() == 0
+                    if page.locator("#rank .diamondHands").count():
+                        assert page.locator("#rank .diamondHands .walletAddress").first.evaluate(
+                            "(el) => getComputedStyle(el).backgroundImage"
+                        ) != "none"
                     # Locale-aware decimal formatting; monetary value always has one place.
                     example = page.evaluate("format(156643.9396)")
                     assert example.endswith(",9"), example
@@ -137,6 +157,10 @@ def main() -> None:
                     assert page.evaluate("document.documentElement.lang") == "ru"
                     page.locator("#nav a[href='#market']").click()
                     assert page.evaluate("window.location.hash") == "#market"
+                    page.locator("#nav a[href='#pools']").click()
+                    assert page.evaluate("window.location.hash") == "#pools"
+                    page.locator("#nav a[href='#supply']").click()
+                    assert page.evaluate("window.location.hash") == "#supply"
                     assert page.locator("#currency button").count() == 2
                     page.locator("#currency button").last.click()
                     assert not errors, f"Errors after controls at {width}: {errors}"
