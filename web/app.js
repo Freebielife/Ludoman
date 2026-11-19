@@ -835,6 +835,87 @@ function ranks(){
  }));
  if(!data.length)$("rank").append(el("p",source?t("none"):t("no"),"empty"));
 }
+
+/* Self-contained brand marks: real Ludoman art and inline vector / letter marks.
+   No third-party fonts, icon CDNs, scripts or external UI dependencies. */
+const brandLabels={ludoman:"L",ton:"◆",gram:"G",kito:"K",usdt:"₮",usda:"U",rton:"R",
+  telegram:"",x:"",github:"GH",ston:"S",dedust:"D",tonco:"C",gecko:"G",
+  gramorg:"◎",tonviewer:"TV",dexscreener:"DX",tonraffles:"TR",
+  jvault:"JV",getgems:"GG",fragment:"F",web:"W",explorer:"↗"};
+function brandMarkNode(kind){
+ const icon=el("span",undefined,"brandGlyph brand-"+kind);
+ icon.setAttribute("aria-hidden","true");
+ if(kind==="telegram"){
+   const plane=svg("svg",{viewBox:"0 0 24 24",fill:"none","aria-hidden":"true"});
+   plane.append(svg("path",{d:"M21 3 L3 10.5 L10 13.4 L12.9 21 L21 3 Z M10 13.4 L21 3 L15.1 16.1",stroke:"currentColor","stroke-width":"1.8","stroke-linejoin":"round","stroke-linecap":"round"}));
+   icon.append(plane);
+ } else if(kind==="x"){
+   const mark=svg("svg",{viewBox:"0 0 24 24",fill:"none","aria-hidden":"true"});
+   mark.append(svg("path",{d:"M4 3 L9 3 L20 21 L15 21 Z M20 3 L13.1 11.1 M10.9 13.8 L4 21",stroke:"currentColor","stroke-width":"1.8","stroke-linecap":"round"}));
+   icon.append(mark);
+ }else{
+   icon.textContent=brandLabels[kind]||"•";
+ }
+ return icon;
+}
+function markFromLink(anchor){
+ let host;
+ try{host=new URL(anchor.href,location.href).hostname.toLowerCase()}catch{return null}
+ if(host==="t.me"||host==="telegram.me")return"telegram";
+ if(host==="x.com"||host==="twitter.com")return"x";
+ if(host==="github.com")return"github";
+ if(host.endsWith("ston.fi"))return"ston";
+ if(host.endsWith("dedust.io"))return"dedust";
+ if(host.includes("tonco"))return"tonco";
+ if(host.includes("geckoterminal"))return"gecko";
+ if(host==="gram.org")return"gramorg";
+ if(host.includes("tonviewer"))return"tonviewer";
+ if(host.includes("dexscreener"))return"dexscreener";
+ if(host.includes("tonraffles"))return"tonraffles";
+ if(host.includes("jvault"))return"jvault";
+ if(host.includes("getgems"))return"getgems";
+ if(host.includes("fragment.com"))return"fragment";
+ if(host.includes("ludoman"))return"ludoman";
+ return null;
+}
+function decorateBrandLinks(){
+ const selector=".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a";
+ for(const anchor of document.querySelectorAll(selector)){
+   if(anchor.querySelector(".brandGlyph"))continue;
+   const brand=markFromLink(anchor);
+   if(!brand)continue;
+   anchor.classList.add("brandedLink");
+   anchor.prepend(brandMarkNode(brand));
+   if(anchor.hostname&&anchor.hostname!==location.hostname){
+     anchor.target="_blank";
+     anchor.rel="noopener noreferrer";
+   }
+ }
+ for(const card of document.querySelectorAll("#pools .poolCard")){
+   const descriptor=card.querySelector("p")?.textContent?.toLowerCase()||"";
+   card.classList.remove("dex-dedust","dex-ston","dex-tonco","dex-mixed");
+   const hasDedust=descriptor.includes("dedust");
+   const hasSton=descriptor.includes("ston.fi");
+   if(hasDedust&&hasSton)card.classList.add("dex-mixed");
+   else if(descriptor.includes("tonco"))card.classList.add("dex-tonco");
+   else if(hasDedust)card.classList.add("dex-dedust");
+   else if(hasSton)card.classList.add("dex-ston");
+   // Display recognisable token marks rather than text alone. Preserve symbols.
+   const name=card.querySelector("h3");
+   if(name&&!name.querySelector(".brandGlyph")){
+     const label=name.textContent;
+     const match=label.match(/^(LUDOMAN)\s*\/\s*(.+)$/i);
+     if(match){
+       const quote=match[2].replace(/\s*\(TON\)\s*$/i,"").trim().toLowerCase();
+       const tokenKind=brandLabels[quote]!==undefined?quote:(quote==="ton"?"ton":null);
+       name.replaceChildren(brandMarkNode("ludoman"),document.createTextNode(" LUDOMAN / "));
+       if(tokenKind)name.append(brandMarkNode(tokenKind),document.createTextNode(" "+match[2]));
+       else name.append(document.createTextNode(match[2]));
+     }
+   }
+ }
+}
+
 function renderPools(){
   const section=snapshot.pools;
   const grid=$("discoveredPools");
@@ -901,7 +982,7 @@ function render(){document.documentElement.lang=lang;document.querySelectorAll("
    try{localStorage.setItem("ludoman-currency",currency)}catch{}
    render();
  });
- select("periods",t("periodNames"),period,i=>{period=i;render()});$("badgeFilterSearch").placeholder=t("filterSearchPlaceholder");$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderPools();renderSyncStatus()}
+ select("periods",t("periodNames"),period,i=>{period=i;render()});$("badgeFilterSearch").placeholder=t("filterSearchPlaceholder");$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderPools();decorateBrandLinks();renderSyncStatus()}
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(MASTER);$("copy").textContent=t("copied")}catch{window.prompt(t("copy"),MASTER)}};
 $("walletSearchForm").onsubmit=findWallet;
 $("largeTrades").onchange=$("minTradeSize").oninput=()=>{expanded=false;list()};
