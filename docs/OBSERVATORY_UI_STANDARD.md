@@ -40,3 +40,15 @@ Replace hard-coded LUDOMAN/GRAM symbols, master contract, art, URLs, all wallet 
 - Run `node --test tests/*.test.cjs`, `python3 -m unittest discover -s tests -p 'test_*.py'`, `python3 build.py`, and `python3 verify.py`.
 - Chromium smoke test at 360 / 390 / 768 / 1280 px. Verify language switch, graph, navigation, filter/search/reset, seller periods, holder ranks, links, JS errors, mobile overflow and readable animations.
 - Check generated `index.html` embeds all images/JS/CSS and data without unresolved template tokens or external framework assets.
+
+
+## Ludoman interface refinement — 19 Nov 2026
+
+- Operation cards stay compact: time in the header, token/GRAM amounts side by side, wallet and a simple "Транзакция" / "Transaction" hyperlink in the same footer row. No per-card chevrons, no arrows beside that hyperlink, no repeated timestamps. Buy and sell headings include small animated upward/downward chart marks; the full line remains visible when reduced motion is requested.
+- Six navigation links: Market, Operations, Rankings, Liquidity (goes to #pools), Locks/Staking (goes to #supply), Links. On 360–390px viewports use a 3-by-2 grid with all six labels visible.
+- Diamond Hands holders: moving multicolour border, gemstone motif, animated gemstone lettering on wallet/domain and honor label. Known service accounts (snapshot.identity.byWallet[wallet].role) also receive a gear, not inferred guesses.
+- Liquidity pool cards have distinct dark accents: DeDust yellow, STON.fi blue, Tonco green; mixed providers use a neutral mixture. This is a visual rule and does not imply a Tonco pool exists when no verified pool is in the snapshot.
+- Frozen balances (❄️) and staking (🔒) appear below Operations and Rankings, with an **estimated** USD value only when both a valid LUDOMAN/GRAM market quote and GRAM/USD rate exist. No exchange price or amount is invented when missing.
+- Social links, DEX links and token pair labels receive embedded vector/monogram or existing local token-art marks. All runtime assets remain self-contained.
+- Counts of actual swap events, seller transactions, holders and burns are **exact integers**. They can legitimately be odd. Never change an on-chain event count solely to make a visually even number, as this would misrepresent the data. For paired sub-events, only display even totals if confirmed from independently verified on-chain transfers, with clear labels and an explicit method.
+- Section backgrounds gradually lighten top-to-bottom in the same dark palette. Desktop 1280px, tablet 768px and mobile 390px/360px are regression-tested in Chromium, including navigation labels, links, filters, currencies and overflow.
