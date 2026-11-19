@@ -59,7 +59,7 @@ def publish(root: Path, branch: str = "main", retries: int = 3) -> None:
             command(root, sys.executable, "verify.py")
             command(root, "git", "add", "--", "index.html")
             if command(root, "git", "diff", "--cached", "--quiet", allow_failure=True).returncode != 0:
-                command(root, "git", "commit", "--amend", "--no-edit")
+                command(root, "git", "commit", "-m", "Rebuild LUDOMAN page after upstream changes")
         push = command(root, "git", "push", "origin", "HEAD:refs/heads/main", allow_failure=True)
         if push.returncode == 0:
             print("Published fresh Ludoman snapshot to main", flush=True)
