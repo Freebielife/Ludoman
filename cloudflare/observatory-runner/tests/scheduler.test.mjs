@@ -108,3 +108,35 @@ test("wrangler cron matches the ten-minute dispatcher slot", () => {
   assert.deepEqual(json.triggers.crons, ["*/10 * * * *"]);
   assert.equal(JSON.stringify(json).includes("GITHUB_ACTIONS_TOKEN"), false);
 });
+
+test("403 distinguishes insufficient token permissions without leaking response details", async () => {
+  const response = new Response(JSON.stringify({
+    message: "Resource not accessible by personal access token",
+    secret: "not-to-be-logged"
+  }), { status: 403, headers: {
+    "content-type": "application/json",
+    "x-accepted-github-permissions": "actions=write",
+    "x-ratelimit-remaining": "4900"
+  } });
+  await assert.rejects(
+    () => dispatchDue({ scheduledTime: monday, token: "test-secret",
+      fetcher: async () => response }),
+    error => {
+      assert.match(error.message, /reason=token-repository-permissions/);
+      assert.match(error.message, /required_permissions=actions=write/);
+      assert.match(error.message, /rate_remaining=4900/);
+      assert.doesNotMatch(error.message, /test-secret|not-to-be-logged/);
+      return true;
+    }
+  );
+});
+
+test("403 rate limit is classified separately from permissions", async () => {
+  await assert.rejects(
+    () => dispatchDue({ scheduledTime: monday, token: "test-secret",
+      fetcher: async () => new Response(JSON.stringify({
+        message: "API rate limit exceeded for this user."
+      }), { status: 403, headers: { "x-ratelimit-remaining": "0" } }) }),
+    /reason=rate-limit.*rate_remaining=0/
+  );
+});
