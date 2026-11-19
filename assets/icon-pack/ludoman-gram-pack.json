@@ -4,12 +4,13 @@
   "pack": "Gram by @gramnews by @EmojiSaverBot",
   "mapping_status": "user_selected_for_future_use",
   "enabled_on_site": false,
-  "notes": "Separate numbering from TONecoFlags. Reference numbers correspond to the user-provided GRAM numbered contact sheet/archive; do not confuse them with TONecoFlags.",
+  "notes": "Use GRAM pack logo #02 as the GRAM token logo throughout the Ludoman observatory site only. This does not replace the LUDOMAN token/project logo. The visual change is not yet applied to the site. Separate numbering from TONecoFlags.",
   "entries": [
     {
       "project": "GRAM",
       "number": 2,
-      "display_number": "02"
+      "display_number": "02",
+      "usage": "GRAM token logo in Ludoman website (trading pairs and other GRAM references)"
     }
   ]
 }
