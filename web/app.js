@@ -912,6 +912,12 @@ function markFromLink(anchor){
 function decorateBrandLinks(){
  const headerIcon=document.querySelector(".brand .brandMark");
  if(headerIcon&&!headerIcon.querySelector(".brandTile"))applyApprovedBrand(headerIcon,"ludoman");
+ // +888 and author NFT stay legible; their service artwork appears in the badge guide.
+ const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};
+ for(const label of document.querySelectorAll("#wallets .badgeLegend dt")){
+  const kind=legendBrands[label.textContent.trim()];
+  if(kind&&!label.querySelector(".brandGlyph"))label.prepend(brandMarkNode(kind),document.createTextNode(" "));
+ }
  const selector=".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a";
  for(const anchor of document.querySelectorAll(selector)){
    if(anchor.querySelector(".brandGlyph"))continue;
