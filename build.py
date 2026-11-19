@@ -12,7 +12,10 @@ for marker, filename in (
     ("/*LOADER*/", "snapshot-loader.js"), ("/*MARKET_CAP*/", "market-cap.js"),
     ("/*STYLE*/", "style.css"), ("/*APP*/", "app.js"),
 ):
-    template = template.replace(marker, (web / filename).read_text())
+    template = template.replace(marker, (web / filename).read_text() + (
+        "\n" + (web / "telegram-taste.css").read_text()
+        if filename == "style.css" else ""
+    ))
 art = base64.b64encode((web / "ludoman.webp").read_bytes()).decode("ascii")
 template = template.replace("__LUDOMAN_ART__", "data:image/webp;base64," + art)
 for key in ("staking", "vnuk", "joystick", "phoenix", "blue", "arni"):

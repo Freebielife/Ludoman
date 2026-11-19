@@ -2,6 +2,9 @@
 const MASTER="EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb";
 const texts = {
   "ru": {
+    "filterButton":"Фильтр", "filterByBadges":"Метки кошельков", "filterReset":"Сбросить",
+    "filterHint":"При выборе нескольких меток показываются кошельки, имеющие все выбранные метки.",
+    "filterSearchPlaceholder":"Найти метку…",
     "volumeTitle": "Объём сделок",
     "volumeEmpty": "За этот период сделки не найдены",
     "largeTrades": "Крупные сделки",
@@ -36,19 +39,19 @@ const texts = {
     "badgeDnsLinked": "Привязан в TON DNS",
     "badgeDigits": "Четырёхзначный .ton-домен в кошельке или подтверждённая привязка в TON DNS.",
     "badgeSub": "Владение субдоменом .socool.ton.",
-    "blueCollection":"Открыть NFT-коллекцию","activated":"Активация","burnBadge":"Сожжено от 1 000 токенов","toZero":"На нулевой адрес","operationDetails":"Подробности операции","supplyTitle":"Заморозка и стейкинг","supplyFrozen":"Заморожено","supplyFrozenHint":"Остатки в контрактах TonRaffles","supplyStaked":"В стейкинге","supplyStakedHint":"Позиции JVault, включая заявки на вывод",
+    "blueCollection":"Открыть NFT-коллекцию","activated":"Активация","burnBadge":"Сожжено от 1 000 токенов","toZero":"На нулевой адрес","operationDetails":"Подробности операции","supplyTitle":"🔒 Заморозка и стейкинг","supplyFrozen":"Заморожено","supplyFrozenHint":"Остатки в контрактах TonRaffles","supplyStaked":"В стейкинге","supplyStakedHint":"Позиции JVault, включая заявки на вывод",
     "intro": "Сделки, держатели и сжигания $LUDOMAN в сети TON.",
     "swap": "Обмен на STON.fi",
-    "price": "Капитализация LUDOMAN",
-    "summary": "LUDOMAN за 24 часа",
-    "activity": "Операции",
-    "wallets": "Рейтинги",
+    "price": "📈 Капитализация LUDOMAN",
+    "summary": "📊 LUDOMAN за 24 часа",
+    "activity": "🔄 Операции",
+    "wallets": "🏆 Рейтинги",
     "buy": "Покупка",
     "sell": "Продажа",
     "burn": "Сжигание",
     "holders": "Держатели",
     "sellers": "Продавцы",
-    "more": "Ещё 30",
+    "more": "Показать ещё",
     "less": "Свернуть",
     "copy": "Копировать адрес",
     "copied": "Скопировано",
@@ -65,10 +68,10 @@ const texts = {
     "chart": "Оценка капитализации",
     "burnCount": "Сжигания",
     "projectDirectory": "Сайт Ludoman",
-    "navMarket": "Рынок",
-    "links": "Полезные ссылки",
+    "navMarket": "📈 Рынок",
+    "links": "🔗 Полезные ссылки",
     "exploreContract": "Контракт на gram.org",
-    "toMarket": "К графику ↓",
+    "toMarket": "Открыть рынок",
     "up": "Наверх ↑",
     "capMethod": "Цена сделки на STON.fi × текущее общее предложение LUDOMAN, включая заблокированные токены. USD — по историческому курсу GRAM/USD от CoinGecko.",
     "capPartial": "Изменение по доступной истории",
@@ -110,6 +113,9 @@ const texts = {
     "noneTagged": "Среди проверенных адресов для этого фильтра записей нет."
   },
   "en": {
+    "filterButton":"Filter", "filterByBadges":"Wallet badges", "filterReset":"Reset",
+    "filterHint":"Selecting multiple badges shows wallets that have all selected badges.",
+    "filterSearchPlaceholder":"Search badges…",
     "volumeTitle": "Trade volume",
     "volumeEmpty": "No trades found for this period",
     "largeTrades": "Large trades",
@@ -144,19 +150,19 @@ const texts = {
     "badgeDnsLinked": "Linked in TON DNS",
     "badgeDigits": "A four-digit .ton domain owned by the wallet or verified as linked in TON DNS.",
     "badgeSub": "Ownership of a .socool.ton subdomain.",
-    "blueCollection":"Open NFT collection","activated":"Activated","burnBadge":"Burned at least 1,000 tokens","toZero":"Transfer to zero address","operationDetails":"Transaction details","supplyTitle":"Locks and staking","supplyFrozen":"Locked","supplyFrozenHint":"Balances in TonRaffles contracts","supplyStaked":"Staked","supplyStakedHint":"JVault positions, including pending withdrawals",
+    "blueCollection":"Open NFT collection","activated":"Activated","burnBadge":"Burned at least 1,000 tokens","toZero":"Transfer to zero address","operationDetails":"Transaction details","supplyTitle":"🔒 Locks and staking","supplyFrozen":"Locked","supplyFrozenHint":"Balances in TonRaffles contracts","supplyStaked":"Staked","supplyStakedHint":"JVault positions, including pending withdrawals",
     "intro": "Trades, holders and $LUDOMAN burns on TON.",
     "swap": "Swap on STON.fi",
-    "price": "LUDOMAN market cap",
-    "summary": "LUDOMAN in 24 hours",
-    "activity": "Activity",
-    "wallets": "Rankings",
+    "price": "📈 LUDOMAN market cap",
+    "summary": "📊 LUDOMAN in 24 hours",
+    "activity": "🔄 Activity",
+    "wallets": "🏆 Rankings",
     "buy": "Buy",
     "sell": "Sell",
     "burn": "Burn",
     "holders": "Holders",
     "sellers": "Sellers",
-    "more": "30 more",
+    "more": "Show more",
     "less": "Collapse",
     "copy": "Copy address",
     "copied": "Copied",
@@ -173,10 +179,10 @@ const texts = {
     "chart": "Estimated market cap",
     "burnCount": "Burns",
     "projectDirectory": "Ludoman website",
-    "navMarket": "Market",
-    "links": "Useful links",
+    "navMarket": "📈 Market",
+    "links": "🔗 Useful links",
     "exploreContract": "Contract on gram.org",
-    "toMarket": "View chart ↓",
+    "toMarket": "Open market",
     "up": "Back to top ↑",
     "capMethod": "STON.fi trade price × current total LUDOMAN supply, including locked tokens. USD uses historical GRAM/USD rates from CoinGecko.",
     "capPartial": "Change over available history",
@@ -226,7 +232,12 @@ try{lang=localStorage.getItem("ludoman-lang")==="en"?"en":"ru";currency=localSto
 const t=key=>texts[lang][key], day=86400, ranges=[3600,day,7*day,30*day,182*day,365*day];
 function el(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e}
 function link(href,txt){const a=el("a",txt);a.href=href;a.target="_blank";a.rel="noopener noreferrer";return a}
-function format(n,d=2){return Number(n).toLocaleString(lang,{maximumFractionDigits:d})}
+function format(n,d=1){
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1});
+}
 function stamp(s){return s?new Date(s*1000).toLocaleString(lang,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",year:"numeric"}):"—"}
 function short(w){return w?w.slice(0,6)+"…"+w.slice(-5):"—"}
 // Use a user-friendly TON address for explorer links and the visible short label.
@@ -316,7 +327,7 @@ function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
   }
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
-  appendDomainBadge(badges,digits.names,"digits",domains?.digitsAt,digits.linked);
+  appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
   function match(key){
     const source=data?.[key];
     return source?.asOf>=Date.now()/1000-24*3600 && source.wallets?.[wallet];
@@ -380,6 +391,13 @@ function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDom
   if(!activity&&holder&&kind){
     wrapper.append(el("span",wl(kind==="buy"?"activeBuy":"activeSell"),"walletRole "+kind));
   }
+  // Only an independently supplied verified service role receives a service icon.
+  if(holder&&identity?.role){
+    const role=String(identity.role).toLowerCase();
+    const known=[["ston.fi","🪨"],["dedust","💧"],["jvault","🔐"],["tonraffles","🔒"],["getgems","💎"],["fragment","🧩"],["bybit","🏦"],["binance","🏦"],["okx","🏦"],["mexc","🏦"]];
+    const emblem=known.find(([label])=>role.includes(label))?.[1];
+    if(emblem){const icon=el("span",emblem,"serviceEmoji");icon.title=identity.role;wrapper.append(icon);}
+  }
   wrapper.append(address);
   appendProjectBadges(wrapper,raw,verifiedDomain,ownsFragment);
   return wrapper;
@@ -413,7 +431,10 @@ function select(id,labels,selected,onClick){const node=$(id);node.replaceChildre
 function freshness(s){if(!s?.asOf)return t("no");return t("updated")+" "+stamp(s.asOf)+(Date.now()/1000-s.asOf>4*3600?" · "+t("delayed"):"")}
 function coverage(section,cut){return section&&section.since>cut?t("partial")+" · "+t("since")+" "+stamp(section.since):""}
 function capFormat(n,compact=false){
- return Number(n).toLocaleString(lang,{maximumFractionDigits:compact?1:0,...(compact?{notation:'compact'}:{})});
+ const number=Number(n);
+ if(!Number.isFinite(number))return "—";
+ if(number!==0&&Math.abs(number)<0.05)return (number<0?"−":"")+"<"+(lang==="ru"?"0,1":"0.1");
+ return number.toLocaleString(lang,{minimumFractionDigits:1,maximumFractionDigits:1,...(compact?{notation:"compact"}:{})});
 }
 function svg(tag,attrs){const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n}
 function volumeBars(start,end,width,left,right){
@@ -597,7 +618,7 @@ function chart(){
  const width=Math.max(240,plot.clientWidth||800),left=8,right=width-76,top=20,bottom=184;
  const box=svg('svg',{viewBox:`0 0 ${width} 238`,preserveAspectRatio:'none',role:'group','aria-label':t('chart')});
  const x=time=>left+(time-start)/ranges[period]*(right-left);
- const info=$('readout');info.replaceChildren();
+ // The chart stays interactive; public technical readout has been removed.
  const colour=model.change===null||model.change>=0?'#38dda0':'#ff2020';
  $('market').style.setProperty('--chart-colour',colour);
  if(points.length){
@@ -625,7 +646,7 @@ function chart(){
      active=i;const p=points[i],pos=coords[i];
      cursor.setAttribute('cx',pos[0]);cursor.setAttribute('cy',pos[1]);cursor.setAttribute('visibility','visible');
      cursorLine.setAttribute('d',`M${pos[0]} ${top}V${bottom}`);cursorLine.setAttribute('visibility','visible');
-     info.replaceChildren(document.createTextNode(stamp(p.row.time)+' · '+capWithUnit(p.cap)+' · '),tx(p.row));
+     // Cursor only: transaction details remain available in the operations feed.
    }
    inspect(active);
    box.setAttribute('tabindex','0');box.setAttribute('aria-description',t('pointHint'));
@@ -646,8 +667,8 @@ function chart(){
    const cx=Math.max(12,Math.min(right,x(r.time)));
    g.append(svg('rect',{x:cx-11,y:191,width:25,height:25,rx:6,fill:'#ffedd9'}));
    const icon=svg('text',{x:cx-7,y:209,style:'font-size:15px'});icon.textContent='🔥';g.append(icon);
-   const show=()=>info.replaceChildren(document.createTextNode(stamp(r.time)+' · '+t('burn')+' '+format(r.ludoman)+' LUDOMAN · '),tx(r));
-   g.addEventListener('click',e=>{e.preventDefault();show()});g.addEventListener('focus',show);box.append(g);
+   // Burn markers now link straight to the chain explorer without a readout.
+   box.append(g);
  }
  const axisTime=seconds=>new Date(seconds*1000).toLocaleString(lang,period===0?{hour:'2-digit',minute:'2-digit'}:period===1?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:{day:'numeric',month:'short',year:'2-digit'});
  for(const [pos,time,anchor] of [[left,start,'start'],[width-3,end,'end']]){
@@ -655,7 +676,7 @@ function chart(){
  }
  plot.append(box);
  volumeBars(start,end,width,left,right);
- $('chartInfo').textContent=[freshness(section),coverage(section,start),currency==='USD'&&snapshot.rates?.asOf?((lang==='ru'?'Курс GRAM/USD · ':'GRAM/USD rate · ')+freshness(snapshot.rates)):'',!model.tradeCount&&points.length?t('capNoTrades'):'',snapshot.holders?.asOf<section?.asOf?(lang==='ru'?'Предложение на ':'Supply as of ')+stamp(snapshot.holders.asOf):''].filter(Boolean).join(' · ');
+
 }
 function stats(){
  const trades=snapshot.trades,burns=snapshot.burns&&snapshot.zeroBurns?{...snapshot.burns,asOf:Math.min(snapshot.burns.asOf,snapshot.zeroBurns.asOf),rows:burnRows()}:snapshot.burns;
@@ -674,46 +695,91 @@ function stats(){
  }));
 }
 function row(first,sub,value,last){const a=el("div"),b=el("div"),d=el("div",undefined,"row");a.append(first,sub);b.append(value,last);d.append(a,b);return d}
+
+/* Shared badge definitions: the same keys drive labels, filters and future observatories. */
+const badgeFilterDefs=[
+ ["og","OG"],["fragmentNumber","+888"],["digits","0000.ton"],
+ ["author","author NFT"],["staking","JVault"],["vnuk","VNUK"],
+ ["joystick","Joystick"],["phoenix","Phoenix"],["arni","ARNI"],
+ ["napiwas","NAPIWAS"],["blueNft","🔵 NFT"],["burner","🔥 Burn"]
+];
+const selectedBadgeFilters=new Set();
+function hasWalletBadge(wallet,key){
+ if(key==="digits")return numericDomains(wallet).names.length>0;
+ if(key==="fragmentNumber"){
+   const item=snapshot.fragmentNumbers?.byWallet?.[wallet];
+   return Boolean(item?.owns&&item.checkedAt>=Date.now()/1000-2*day);
+ }
+ if(key==="og"){
+   const activated=snapshot.identity?.byWallet?.[wallet]?.activated;
+   if(!activated)return false;
+   const date=new Date(activated*1000),fifth=new Date(date);
+   fifth.setUTCFullYear(date.getUTCFullYear()+5);
+   if(fifth.getUTCMonth()!==date.getUTCMonth())fifth.setUTCDate(0);
+   return Date.now()>fifth.getTime();
+ }
+ if(key==="burner")return (burnTotals?.get(wallet)||0n)>=1000n*10n**9n;
+ const sources=snapshot.badges?.sources;
+ const valid=k=>sources?.[k]?.asOf>=Date.now()/1000-24*3600&&Boolean(sources[k].wallets?.[wallet]);
+ return valid(key)||((key==="vnuk"||key==="joystick")&&valid(key+"Nft"));
+}
+function renderBadgeFilterList(){
+ const list=$("badgeFilterList");
+ if(!list)return;
+ const needle=($("badgeFilterSearch")?.value||"").trim().toLocaleLowerCase();
+ list.replaceChildren();
+ for(const [key,label] of badgeFilterDefs){
+   if(!label.toLocaleLowerCase().includes(needle))continue;
+   const item=el("label",undefined,"badgeFilterItem");
+   const check=el("input");check.type="checkbox";check.checked=selectedBadgeFilters.has(key);
+   check.onchange=()=>{if(check.checked)selectedBadgeFilters.add(key);else selectedBadgeFilters.delete(key);expanded=false;listOperations();};
+   item.append(check,el("span",label));list.append(item);
+ }
+ $("badgeFilterCount").textContent=selectedBadgeFilters.size?"("+selectedBadgeFilters.size+")":"";
+}
+function listOperations(){list();}
+
 function list(){
  const kinds=["all","buy","sell","burn"];
  select("filters",[t("filterAll"),t("buys"),t("sells"),t("burnCount")],kinds.indexOf(feedKind),i=>{feedKind=kinds[i];expanded=false;list()});
- const large=$("largeTrades").checked;
- const threshold=$("minTradeSize").valueAsNumber;
+ renderBadgeFilterList();
+ const large=$("largeTrades").checked,threshold=$("minTradeSize").valueAsNumber;
  $("minTradeSize").disabled=!large;
  const combined=[...(snapshot.trades?.rows||[]),...burnRows()]
-   .filter(r=>!large||(r.kind!=="burn"&&Number.isFinite(threshold)&&threshold>=0&&Number(r.ton)>=threshold))
-   .filter(r=>(feedKind==="all"||r.kind===feedKind)&&(!$("feedDomains").checked||hasDomainBadge(r.wallet))).sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
- $("feed").replaceChildren(...combined.slice(0,expanded?50:20).map(r=>{
-   const who=el("small");who.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
-   const label=r.method==="zero"?t("toZero"):t(r.kind);
-   const top=el("b");top.append(el("span",label,"badge "+r.kind),document.createTextNode(format(r.ludoman,4)+" LUDOMAN"));
-   const right=el("small",r.ton?format(r.ton,4)+" GRAM":"");
-   const meta=[r.kind!=="burn"?r.dex||"DeDust":"",stamp(r.time)].filter(Boolean).join(" · ");
-   const desktop=el("small",meta,"opDesktop");
-   desktop.append(document.createElement("br"), tx(r));
-   const toggle=el("button",undefined,"opToggle");
-   toggle.type="button";
-   toggle.setAttribute("aria-label",t("operationDetails"));
-   toggle.setAttribute("aria-expanded","false");
-   const chevron=el("span");
-   chevron.setAttribute("aria-hidden","true");
-   toggle.append(chevron);
-   const full=el("small",meta,"opMobile");
-   full.id="operation-"+r.tx;
-   full.hidden=true;
-   full.append(document.createElement("br"),tx(r));
-   toggle.setAttribute("aria-controls",full.id);
-   toggle.onclick=()=>{
-     full.hidden=!full.hidden;
-     toggle.setAttribute("aria-expanded",String(!full.hidden));
-   };
-   const item=row(top,who,right,desktop);
-   item.classList.add("operationRow","trade-"+r.kind);
-   item.append(toggle,full);
-   return item
+  .filter(r=>!large||(r.kind!=="burn"&&Number.isFinite(threshold)&&threshold>=0&&Number(r.ton)>=threshold))
+  .filter(r=>(feedKind==="all"||r.kind===feedKind)
+    &&(!$("feedDomains").checked||hasDomainBadge(r.wallet))
+    &&[...selectedBadgeFilters].every(key=>hasWalletBadge(r.wallet,key)))
+  .sort((a,b)=>b.time-a.time||a.tx.localeCompare(b.tx)).slice(0,50);
+ const visible=expanded?combined:combined.slice(0,10);
+ $("feed").replaceChildren(...visible.map(r=>{
+   const item=el("article",undefined,"row operationRow trade-"+r.kind);
+   const header=el("div",undefined,"opHeader");
+   const title=el("strong",r.method==="zero"?t("toZero"):t(r.kind),"opKind "+r.kind);
+   const date=el("time",stamp(r.time),"opDate");
+   date.dateTime=new Date(r.time*1000).toISOString();
+   header.append(title,date);
+   const amounts=el("div",undefined,"opAmounts");
+   const token=el("div",undefined,"opAmount opToken");
+   token.append(el("strong",format(r.ludoman),"opAmountValue"),el("small","LUDOMAN","opAmountUnit"));
+   const gram=el("div",undefined,"opAmount opGram");
+   const hasGram=r.ton!=null&&Number(r.ton)>0;
+   gram.append(el("strong",hasGram?format(r.ton):"—","opAmountValue"),el("small","GRAM","opAmountUnit"));
+   amounts.append(token,gram);
+   const wallet=el("div",undefined,"opWallet");
+   wallet.append(walletIdentity(r.wallet,r.name,r.kind,{activity:true}));
+   const transaction=link("https://gram.org/tx/"+r.tx,lang==="ru"?"Транзакция":"Transaction");
+   transaction.className="opTransaction";
+   transaction.title=r.tx;
+   item.append(header,amounts,wallet,transaction);
+   return item;
  }));
- if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked?"noneTagged":"none"),"empty"));
- $("more").hidden=combined.length<=20;$("more").textContent=expanded?t("less"):t("more").replace("30",String(Math.min(30,combined.length-20)));
+ if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
+ const more=$("more");
+ more.hidden=combined.length<=10;
+ more.setAttribute("aria-expanded",String(expanded));
+ more.setAttribute("aria-controls","feed");
+ more.textContent=expanded?t("less")+" ↑":t("more")+" ("+(combined.length-10)+") ↓";
 }
 function rankedSellers(source){
  const groups=new Map();
@@ -734,10 +800,27 @@ function ranks(){
  const lastActivity=lastTradeByWallet();
  const isHolder=ranking==="holders",source=isHolder?snapshot.holders:snapshot.trades;
  select("views",[t("holders"),t("sellers")],isHolder?0:1,i=>{ranking=i?"sellers":"holders";ranks()});
- $("sellerPeriods").replaceChildren();if(!isHolder)select("sellerPeriods",t("dayLabels"),[1,7,30].indexOf(sellerDays),i=>{sellerDays=[1,7,30][i];ranks()});
+ $("sellerPeriods").replaceChildren();
+ if(!isHolder)select("sellerPeriods",t("dayLabels"),[1,7,30].indexOf(sellerDays),i=>{sellerDays=[1,7,30][i];ranks()});
  const data=isHolder?source?.holders||[]:rankedSellers(source);
  const previous=isHolder?source?.previousRanks:source?.previousRanks?.[sellerDays];
- $("rank").replaceChildren(...data.map((r,i)=>{const title=el("b");title.append(rankPosition(i,previous?.[r.wallet]),walletIdentity(r.wallet,r.name,isHolder?lastActivity.get(r.wallet):"sell",{holder:isHolder}));return row(title,el("small",isHolder?t("balance"):t("sold")),el("b",format(isHolder?r.ludoman:Number(r.units)/1e9)+" LUDOMAN"),el("small",isHolder?format(r.share,4)+"%":(lang==="ru"?"Сделок: ":"Trades: ")+format(r.count,0)))}));if(!data.length)$("rank").append(el("p",source?t("none"):t("no"),"empty"))
+ $("rank").replaceChildren(...data.map((r,i)=>{
+   const title=el("b");
+   title.append(rankPosition(i,previous?.[r.wallet]),walletIdentity(r.wallet,r.name,isHolder?lastActivity.get(r.wallet):"sell",{holder:isHolder}));
+   const entry=row(title,el("small",isHolder?t("balance"):t("sold")),
+     el("b",format(isHolder?r.ludoman:Number(r.units)/1e9)+" LUDOMAN"),
+     el("small",isHolder?format(r.share,4)+"%":(lang==="ru"?"Сделок: ":"Trades: ")+format(r.count,0)));
+   entry.classList.add("rankingRow");
+   if(i<10&&isHolder){
+     entry.classList.add("diamondHands");
+     entry.firstElementChild.prepend(el("span","💎 Diamond Hands","rankHonor diamondHonor"));
+   }else if(i<10&&!isHolder&&(sellerDays===7||sellerDays===30)){
+     entry.classList.add("paperHands");
+     entry.firstElementChild.prepend(el("span","🧻 Paper Hands","rankHonor paperHonor"));
+   }
+   return entry;
+ }));
+ if(!data.length)$("rank").append(el("p",source?t("none"):t("no"),"empty"));
 }
 function renderPools(){
   const section=snapshot.pools;
@@ -792,12 +875,24 @@ function render(){document.documentElement.lang=lang;document.querySelectorAll("
    try{localStorage.setItem("ludoman-currency",currency)}catch{}
    render();
  });
- select("periods",t("periodNames"),period,i=>{period=i;render()});$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderPools();renderSyncStatus()}
+ select("periods",t("periodNames"),period,i=>{period=i;render()});$("badgeFilterSearch").placeholder=t("filterSearchPlaceholder");$("copy").textContent=t("copy");$("contract").href="https://gram.org/jetton/"+MASTER;$("contractAddress").textContent=MASTER;updateBurnTotals();chart();stats();list();ranks();renderLookup();renderSupply();renderPools();renderSyncStatus()}
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(MASTER);$("copy").textContent=t("copied")}catch{window.prompt(t("copy"),MASTER)}};
 $("walletSearchForm").onsubmit=findWallet;
 $("largeTrades").onchange=$("minTradeSize").oninput=()=>{expanded=false;list()};
 $("feedDomains").onchange=()=>{expanded=false;list()};
-$("more").onclick=()=>{expanded=!expanded;list()};window.addEventListener("resize",chart);render();
+$("more").onclick=()=>{expanded=!expanded;list()};
+$("badgeFilterToggle").onclick=()=>{
+ const panel=$("badgeFilterPanel");panel.hidden=!panel.hidden;
+ $("badgeFilterToggle").setAttribute("aria-expanded",String(!panel.hidden));
+ if(!panel.hidden)$("badgeFilterSearch").focus();
+};
+$("badgeFilterSearch").oninput=renderBadgeFilterList;
+$("clearBadgeFilters").onclick=()=>{
+ selectedBadgeFilters.clear();$("badgeFilterSearch").value="";
+ $("feedDomains").checked=false;$("largeTrades").checked=false;
+ expanded=false;list();
+};
+window.addEventListener("resize",chart);render();
 function renderSyncStatus(){
  const ru=lang==='ru', now=Date.now()/1000;
  const times=['trades','burns','holders'].map(k=>snapshot[k]?.asOf||0);
