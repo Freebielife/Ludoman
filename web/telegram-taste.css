@@ -552,3 +552,17 @@ html{scroll-behavior:smooth}
  #feed .operationRow .trendDot{opacity:1}
 }
 
+
+/* Contrast and alignment fixes from the real mobile screenshots. */
+#feed .operationRow .trendBase{fill:none;stroke:currentColor;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;opacity:.32}
+#rank .rankingRow .walletIdentity.serviceWallet{display:flex;flex-wrap:wrap;
+ align-items:flex-start;gap:4px 7px;min-width:0}
+#rank .rankingRow .walletIdentity.serviceWallet > .walletAddress{
+ flex:1 1 0;min-width:0;overflow-wrap:anywhere}
+#rank .rankingRow .walletIdentity.serviceWallet > .serviceGear{
+ flex:0 0 23px;margin-top:1px}
+#rank .rankingRow .walletIdentity.serviceWallet > .projectBadges{
+ flex:1 0 100%}
+#rank .rankingRow .diamondHonor{font-size:10px!important;padding:4px 7px!important;
+ white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
