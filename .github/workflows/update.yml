@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 20
       - name: Verify snapshot loader and market cap
         run: node --test tests/*.test.cjs
       - name: Verify domain ownership and refresh queue
@@ -34,13 +35,7 @@ jobs:
           test -s data/snapshot.json
           python3 build.py
           python3 verify.py
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/snapshot.json index.html
-          if ! git diff --cached --quiet; then
-            git commit -m "Refresh LUDOMAN snapshot"
-            git push
-          fi
+          python3 scripts/publish_snapshot.py
       - name: Flag partial collection
         if: steps.collect.outcome == 'failure'
         run: exit 1
