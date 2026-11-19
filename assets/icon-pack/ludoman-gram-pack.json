@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "project": "Ludoman",
+  "pack": "Gram by @gramnews by @EmojiSaverBot",
+  "mapping_status": "user_selected_for_future_use",
+  "enabled_on_site": false,
+  "notes": "Separate numbering from TONecoFlags. Reference numbers correspond to the user-provided GRAM numbered contact sheet/archive; do not confuse them with TONecoFlags.",
+  "entries": [
+    {
+      "project": "GRAM",
+      "number": 2,
+      "display_number": "02"
+    }
+  ]
+}
