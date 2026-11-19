@@ -1,0 +1,53 @@
+name: Validate TON Observatory icon kit
+on:
+  push:
+    branches: ['assets/observatory-brand-kit-20261119']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          node --test tests/*.test.cjs
+      - name: Build offline site and icon catalog
+        run: |
+          python3 build.py
+          python3 verify.py
+          python3 scripts/icon_pack.py --gallery
+      - name: Install Chromium for visual testing
+        run: |
+          python3 -m pip install --quiet playwright
+          python3 -m playwright install chromium
+      - name: Browser-test mobile, desktop, links and icons
+        run: python3 tests/browser_preview.py
+      - name: Upload visual screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: icon-pack-mobile-screenshots
+          path: build/screenshots
+          if-no-files-found: ignore
+      - name: Verify no remote image dependency
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          site=Path("index.html").read_text()
+          assert "window.OBSERVATORY_ICON_PACK" in site
+          assert "data:image/svg+xml;base64," in site
+          assert "/*ICONS*/" not in site
+          print("Icon pack embedded")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ton-observatory-icon-catalog
+          path: |
+            build/icon-gallery.html
+            assets/icon-pack/manifest.json
+            index.html
+          retention-days: 7

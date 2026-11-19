@@ -566,3 +566,7 @@ html{scroll-behavior:smooth}
  flex:1 0 100%}
 #rank .rankingRow .diamondHonor{font-size:10px!important;padding:4px 7px!important;
  white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+
+/* Observatory icon pack — local verified vector logos (offline only). */
+.brandGlyph img{display:block;width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1)}
+.brandGlyph.brand-github img{width:17px;height:17px}

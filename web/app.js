@@ -848,6 +848,19 @@ const brandLabels={ludoman:"L",ton:"◆",gram:"G",kito:"K",usdt:"₮",usda:"U",r
 function brandMarkNode(kind){
  const icon=el("span",undefined,"brandGlyph brand-"+kind);
  icon.setAttribute("aria-hidden","true");
+ // Only approved and locally embedded brand graphics may replace placeholders.
+ const approved=typeof window==="object"?window.OBSERVATORY_ICON_PACK?.[kind]:null;
+ if(approved){
+   const logo=el("img");
+   logo.alt="";
+   logo.width=18;
+   logo.height=18;
+   logo.loading="eager";
+   logo.decoding="async";
+   logo.src=approved;
+   icon.append(logo);
+   return icon;
+ }
  if(kind==="telegram"){
    const plane=svg("svg",{viewBox:"0 0 24 24",fill:"none","aria-hidden":"true"});
    plane.append(svg("path",{d:"M21 3 L3 10.5 L10 13.4 L12.9 21 L21 3 Z M10 13.4 L21 3 L15.1 16.1",stroke:"currentColor","stroke-width":"1.8","stroke-linejoin":"round","stroke-linecap":"round"}));

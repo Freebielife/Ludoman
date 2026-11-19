@@ -2,12 +2,14 @@
 import base64
 import json
 from pathlib import Path
+from scripts.icon_pack import embedded_script
 
 root = Path(__file__).resolve().parent
 data = root / "data/snapshot.json"
 snapshot = json.loads(data.read_text())
 web = root / "web"
 template = (web / "page.html").read_text()
+template = template.replace("/*ICONS*/", embedded_script())
 for marker, filename in (
     ("/*LOADER*/", "snapshot-loader.js"), ("/*MARKET_CAP*/", "market-cap.js"),
     ("/*STYLE*/", "style.css"), ("/*APP*/", "app.js"),
