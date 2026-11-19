@@ -15,7 +15,7 @@
   "source_sha256": "05c5589a7d7d54d688d0b12285014a3585b0018cf06257afd45ed79a4dedcb08",
   "description": "Blue grinning cartoon batlike character with a dark fedora hat. Purple/teal accents.",
   "intended_usage": "Brand/token logo for LUDOMAN on its observatory site. Keep separate from GRAM logo #02 in the other archive.",
-  "status": "accepted_user_supplied_pending_site_integration",
+  "status": "approved_owner_logo_embedded_in_site_atlas",
   "applies_to": "Ludoman site only",
-  "note": "The metadata identifies the original file in the uploaded ZIP; the binary asset has not yet been committed to the repository. Do not infer logo from other emoji packs."
+  "note": "User-supplied token emblem embedded in approved-brand-atlas.json as a static 40px WebP tile. Its original higher-resolution source is not separately stored in GitHub."
 }
