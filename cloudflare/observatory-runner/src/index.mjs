@@ -82,12 +82,20 @@ export default {
     return new Response("Not found", { status: 404 });
   },
   async scheduled(event, env) {
-    const dispatched = await dispatchDue({
-      scheduledTime: event.scheduledTime,
-      token: env.GITHUB_ACTIONS_TOKEN
-    });
-    console.log(dispatched.length
-      ? "Observatory dispatch accepted: " + dispatched.join(", ")
-      : "No observatories due in this slot");
+    try {
+      const dispatched = await dispatchDue({
+        scheduledTime: event.scheduledTime,
+        token: env.GITHUB_ACTIONS_TOKEN
+      });
+      console.log(dispatched.length
+        ? "Observatory dispatch accepted: " + dispatched.join(", ")
+        : "No observatories due in this slot");
+    } catch (error) {
+      // Log only our curated exception message (project ID / HTTP status).
+      // Do not output credentials, request headers, or GitHub response bodies.
+      console.error("Observatory dispatch failed: " +
+        (error instanceof Error ? error.message : "unknown error"));
+      throw error;
+    }
   }
 };
