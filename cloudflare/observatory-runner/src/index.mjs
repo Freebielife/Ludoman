@@ -80,10 +80,10 @@ export async function dispatchDue({ scheduledTime, token, registry = projects, f
       }
       const acceptedPermissions = response.headers?.get?.("x-accepted-github-permissions");
       const permissions = typeof acceptedPermissions === "string" &&
-        acceptedPermissions.length <= 120 && /^[a-z_,;=\\s]+$/.test(acceptedPermissions)
+        acceptedPermissions.length <= 120 && /^[a-z_,;=\s]+$/.test(acceptedPermissions)
         ? acceptedPermissions.trim() : "not-provided";
       const remaining = response.headers?.get?.("x-ratelimit-remaining");
-      const rate = typeof remaining === "string" && /^\\d{1,8}$/.test(remaining)
+      const rate = typeof remaining === "string" && /^\d{1,8}$/.test(remaining)
         ? remaining : "unknown";
       throw new Error(project.id + ": GitHub dispatch HTTP " + response.status +
         " reason=" + reason + " required_permissions=" + permissions +
