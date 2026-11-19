@@ -55,6 +55,7 @@ test("GitHub workflow_dispatch uses fine-grained token securely", async () => {
     "https://api.github.com/repos/Freebielife/Ludoman/actions/workflows/update.yml/dispatches");
   assert.equal(calls[0].init.method, "POST");
   assert.equal(calls[0].init.headers.Authorization, "Bearer test-secret");
+  assert.equal(calls[0].init.headers["User-Agent"], "Freebie-Observatory-Runner/1.0");
   assert.deepEqual(JSON.parse(calls[0].init.body), { ref: "main" });
 });
 
