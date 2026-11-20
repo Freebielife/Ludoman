@@ -19,16 +19,20 @@ test("Ludoman fires at :00 and :30 UTC, with future projects offset", () => {
   assert.deepEqual(selectDueProjects("2026-11-16T12:40:00Z", registry).map(p => p.id), ["new-token"]);
 });
 
-test("TAC is staged at :10/:40 but not dispatched before token authorization", () => {
+test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
   const tac=projects.find(p=>p.id==="tac");
   assert.ok(tac);
+  assert.equal(tac.owner,"Freebielife");
   assert.equal(tac.repo,"Freebielife-TAC-Observatory");
   assert.equal(tac.workflow,"refresh.yml");
+  assert.equal(tac.ref,"main");
   assert.equal(tac.everyMinutes,30);
   assert.equal(tac.phaseMinutes,10);
-  assert.equal(tac.enabled,false);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects), []);
+  assert.equal(tac.enabled,true);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects).map(p=>p.id), ["tac"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", projects).map(p=>p.id), ["tac"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects), []);
 });
 
 test("disabled project cannot be dispatched", () => {
@@ -71,13 +75,31 @@ test("GitHub workflow_dispatch uses fine-grained token securely", async () => {
   assert.deepEqual(JSON.parse(calls[0].init.body), { ref: "main" });
 });
 
+test("Cloudflare TAC dispatch uses the correct GitHub workflow and requires actions permission", async () => {
+  const requests = [];
+  const result = await dispatchDue({
+    scheduledTime: "2026-11-20T13:10:00Z",
+    token: "synthetic-test-secret",
+    fetcher: async (url, init) => {
+      requests.push({url,init});
+      return {ok:true,status:204};
+    }
+  });
+  assert.deepEqual(result,["tac"]);
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].url,
+    "https://api.github.com/repos/Freebielife/Freebielife-TAC-Observatory/actions/workflows/refresh.yml/dispatches");
+  assert.equal(requests[0].init.headers.Authorization,"Bearer synthetic-test-secret");
+  assert.deepEqual(JSON.parse(requests[0].init.body),{ref:"main"});
+});
+
 test("no token means no API request, unless no projects are due", async () => {
   const spy = async () => { throw new Error("Should not dispatch"); };
   await assert.rejects(() => dispatchDue({
     scheduledTime: monday, token: "", fetcher: spy
   }), /GITHUB_ACTIONS_TOKEN/);
   assert.deepEqual(await dispatchDue({
-    scheduledTime: "2026-11-16T12:10:00Z", token: "", fetcher: spy
+    scheduledTime: "2026-11-16T12:20:00Z", token: "", fetcher: spy
   }), []);
 });
 

@@ -12,8 +12,9 @@ export const projects = Object.freeze([
     phaseMinutes: 0,
     enabled: true
   }),
-  // Prepared for Cloudflare scheduling but deliberately disabled until the
-  // existing Worker's GitHub token is granted Actions:write for this new repo.
+  // TAC has been authorized by the owner in the existing Cloudflare token's
+  // selected repositories (2026-11-20). Actual dispatch must be confirmed in
+  // Cloudflare logs and GitHub Actions after deployment of this revision.
   Object.freeze({
     id: "tac",
     owner: "Freebielife",
@@ -22,6 +23,6 @@ export const projects = Object.freeze([
     ref: "main",
     everyMinutes: 30,
     phaseMinutes: 10,
-    enabled: false
+    enabled: true
   })
 ]);
