@@ -836,6 +836,19 @@ def scaffold(config_path, output):
             value += ('\nhtml[lang="ru"] #supply [lang="en"], '
                       'html[lang="en"] #supply [lang="ru"]{display:none!important}\n')
             value += '''
+/* Token symbol is private to the newly generated project, not the common flags. */
+.brandGlyph.brand-project{background:var(--project-art) center/contain no-repeat!important;
+ border-color:transparent!important;box-shadow:none!important;
+ color:transparent!important;font-size:0!important;padding:0!important}
+.supplyExternal{display:flex;flex-wrap:wrap;margin-top:14px;gap:9px}
+.supplyExternal a{display:inline-flex;align-items:center;gap:8px;
+ text-decoration:none;color:#eff8ff;border:1px solid #567296;
+ background:#132447;border-radius:10px;padding:9px 12px;min-height:42px}
+.supplyExternal a:hover{border-color:#81bdff}
+html[lang="en"] .supplyExternal [lang="ru"],
+html[lang="ru"] .supplyExternal [lang="en"]{display:none!important}
+'''
+            value += '''
 /* Project-specific badges (both static WebP and animated WebP/GIF). */
 #wallets .badgeLegend dt[data-project-badge] {display:flex;gap:8px;align-items:center}
 #wallets .badgeLegend dt[data-project-badge] .customBadge {flex:0 0 31px}
