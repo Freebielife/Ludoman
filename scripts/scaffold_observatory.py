@@ -125,7 +125,7 @@ def read_config(path):
     if cfg.get("quote", "TON") != "TON":
         raise ProjectError("Only native TON quote is supported by this collector")
     links = cfg.get("links", {})
-    if not isinstance(links, dict) or set(links) - {"website", "telegram", "x"}:
+    if not isinstance(links, dict) or set(links) - {"website", "telegram", "x", "staking"}:
         raise ProjectError("Unsupported link keys")
     for key, url in links.items():
         if not isinstance(url, str) or not re.fullmatch(r"https://[A-Za-z0-9.-]+(?::[0-9]+)?(?:/[^ \r\n\t<>]*)?", url):
@@ -416,12 +416,22 @@ def page_html(source, cfg):
               '<small id="frozenUsd">—</small></div>'
               '<div><span data-t="supplyStaked"></span><strong id="stakingTotal">—</strong>'
               '<small id="stakingUsd">—</small></div></div></section>')
+    if "staking" in cfg.get("links", {}):
+        staking_url = html.escape(cfg["links"]["staking"], quote=True)
+        staking_action = (
+            '<div class="resourceList supplyExternal">'
+            '<a href="' + staking_url + '" data-brand="project" target="_blank" '
+            'rel="noopener noreferrer">'
+            '<span lang="ru">Официальная страница стейкинга</span>'
+            '<span lang="en">Official staking page</span></a></div>'
+        )
+        supply = supply.replace("</section>", staking_action + "</section>")
     source, count = re.subn(r'<section id="supply" .*?</section>',
                             lambda _: supply, source, count=1, flags=re.S)
     if count != 1:
         raise ProjectError("Cannot isolate project staking/lock integrations")
     resources = []
-    for key, label in (("website", cfg["name"]), ("telegram", "Telegram"), ("x", "X")):
+    for key, label in (("website", cfg["name"]), ("telegram", "Telegram"), ("x", "X"), ("staking", "Staking")):
         if key in cfg.get("links", {}):
             resources.append('<a href="' + html.escape(cfg["links"][key], quote=True) +
                              '" target="_blank" rel="noopener noreferrer">' +
@@ -559,6 +569,15 @@ def app_js(source, cfg):
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    # Project-supplied links such as the native-chain staking frontend may be
+    # displayed without inventing balances, validators or yield percentages.
+    source = replace(source, 'const brand=markFromLink(anchor);',
+                     'const brand=anchor.dataset.brand||markFromLink(anchor);',
+                     "allow explicit branding of verified service links")
+    source = replace(source,
+                     '".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a"',
+                     '".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a"',
+                     "preserve explicit resource icons")
     # A site's official website must receive its own token emblem, even when
     # the domain has no word "project" in it (for example tac.build).
     site = cfg.get("links", {}).get("website")
