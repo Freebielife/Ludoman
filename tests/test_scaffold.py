@@ -92,7 +92,13 @@ class ScaffoldTests(unittest.TestCase):
                         "Joystick", "Phoenix", "JVault", "CryptoCheck",
                         "1000ludoman", "socool.ton", "author NFT"):
             self.assertNotIn(foreign, index, foreign)
-        self.assertNotIn("TONecoFlags", index)
+        self.assertIn("OBSERVATORY_BRAND_ATLAS", index)
+        sprite = json.loads((self.out / "assets/icon-pack/approved-brand-atlas.json").read_text())
+        self.assertEqual(sprite["project"], "TON Observatory / common TONecosystem services")
+        for key in ("ton", "ston", "dedust", "telegram", "gecko", "usdt"):
+            self.assertIn(key, sprite["positions"])
+        for foreign in ("ludoman", "kito", "gram", "usda", "rton", "web", "tonraffles"):
+            self.assertNotIn(foreign, sprite["positions"])
         self.assertNotIn("mRvnukICHlife", index)
         self.assertIn("https://github.com/ExampleOrg/SampleToken", index)
         self.assertFalse((self.out / "web/ludoman.webp").exists())
