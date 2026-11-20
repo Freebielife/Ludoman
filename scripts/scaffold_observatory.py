@@ -135,10 +135,57 @@ def read_config(path):
     cfg["_services"] = {raw_address(address): require({"name": title}, "name")
                         for address, title in services.items()}
     if cfg.get("logo_file"):
-        logo = (path.parent / cfg["logo_file"]).resolve()
-        if not logo.is_file() or logo.suffix.lower() != ".webp" or logo.stat().st_size > 150000:
-            raise ProjectError("logo_file must be a local WebP smaller than 150 KB")
-        cfg["_logo"] = logo
+        cfg["_logo"] = local_image(path.parent, cfg["logo_file"], "logo_file", {".webp"}, 150000)
+    if cfg.get("background_file"):
+        cfg["_background"] = local_image(
+            path.parent, cfg["background_file"], "background_file", {".webp"}, 750000)
+    badges = cfg.get("badges", [])
+    if not isinstance(badges, list) or len(badges) > 12:
+        raise ProjectError("badges must be an array of up to twelve custom badges")
+    reserved = {"og", "digits", "fragmentNumber", "burner", "staking"}
+    badge_icons, seen = {}, set()
+    for badge in badges:
+        if not isinstance(badge, dict):
+            raise ProjectError("Each badge must be an object")
+        key = require(badge, "id")
+        if not re.fullmatch(r"[a-z][a-z0-9_]{1,23}", key) or key in seen or key in reserved:
+            raise ProjectError("Badge ID must be unique and distinct from built-ins")
+        seen.add(key)
+        for label in ("label", "description_ru", "description_en"):
+            val = require(badge, label)
+            if not 1 <= len(val) <= (40 if label == "label" else 250):
+                raise ProjectError("Invalid badge text length: " + label)
+        color = badge.get("color")
+        if color is not None and (not isinstance(color, str) or
+                                  not re.fullmatch(r"#[0-9a-fA-F]{6}", color)):
+            raise ProjectError("Badge color must be an RGB hex color")
+        if "url" in badge:
+            url = badge["url"]
+            if not isinstance(url, str) or not re.fullmatch(
+                r"https://[A-Za-z0-9.-]+(?::[0-9]+)?(?:/[^ \r\n\t<>]*)?", url):
+                raise ProjectError("Badge URL must use HTTPS")
+        if badge.get("icon_file"):
+            badge_icons[key] = local_image(
+                path.parent, badge["icon_file"], "badge icon " + key,
+                {".webp", ".gif"}, 150000)
+        if badge.get("match", "any") not in ("any", "all"):
+            raise ProjectError("Badge match supports only 'any' or 'all'")
+        criteria = require(badge, "criteria", list)
+        if not 1 <= len(criteria) <= 3:
+            raise ProjectError("Each badge needs 1–3 verifiable on-chain criteria")
+        for rule in criteria:
+            if not isinstance(rule, dict):
+                raise ProjectError("Badge criterion must be an object")
+            if rule.get("type") == "jetton_min":
+                raw_address(require(rule, "master"))
+                amount = rule.get("min_balance")
+                if type(amount) is not int or not 0 < amount <= 10**15:
+                    raise ProjectError("Jetton badge min_balance must be positive integer")
+            elif rule.get("type") == "nft_collection":
+                raw_address(require(rule, "collection"))
+            else:
+                raise ProjectError("Unsupported badge proof: use jetton_min or nft_collection")
+    cfg["_badge_icons"] = badge_icons
     return cfg
 
 
