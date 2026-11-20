@@ -672,6 +672,9 @@ background = "data:image/svg+xml;base64," + base64.b64encode(
     b'<rect width="120" height="120" fill="#090e18"/>'
     b'<path d="M0 0L120 120M120 0L0 120" stroke="#25415a" stroke-opacity=".3"/>'
     b'</svg>').decode("ascii")
+if (WEB / "project-background.webp").exists():
+    background = "data:image/webp;base64," + base64.b64encode(
+        (WEB / "project-background.webp").read_bytes()).decode("ascii")
 template = template.replace("__PROJECT_ART__", art).replace("__PROJECT_BG__", background)
 snapshot = json.loads((ROOT / "data/snapshot.json").read_text())
 payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).replace("<", r"\\u003c")
@@ -766,6 +769,27 @@ def scaffold(config_path, output):
         if relative == "web/telegram-taste.css":
             value += ('\nhtml[lang="ru"] #supply [lang="en"], '
                       'html[lang="en"] #supply [lang="ru"]{display:none!important}\n')
+            value += '''
+/* Project-specific badges (both static WebP and animated WebP/GIF). */
+#wallets .badgeLegend dt[data-project-badge] {display:flex;gap:8px;align-items:center}
+#wallets .badgeLegend dt[data-project-badge] .customBadge {flex:0 0 31px}
+#wallets .badgeLegend dt[data-project-badge] img {width:26px;height:26px;object-fit:contain}
+html[lang="en"] .customBadgeDescription [lang="ru"] {display:none!important}
+html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
+.projectBadge.customBadge {display:inline-flex;gap:5px;align-items:center;
+  color:#f0f8ff;background:linear-gradient(120deg,#172b40,#23435a);
+  border:1px solid var(--badge-accent,#76bfff);border-radius:9px;
+  padding:3px 7px;min-height:25px}
+.projectBadge.customBadge img {width:23px;height:23px;object-fit:contain;
+  animation:customBadgeFloat 2.8s ease-in-out infinite alternate}
+.projectBadge.customBadge .customBadgeSymbol {font-size:12px;font-weight:850;
+  color:var(--badge-accent,#76bfff);min-width:20px;text-align:center}
+@keyframes customBadgeFloat {from{transform:translateY(1px) scale(.95)}
+ to{transform:translateY(-1px) scale(1.05)}}
+@media(prefers-reduced-motion:reduce) {
+ .projectBadge.customBadge img {animation:none!important}
+}
+'''
         if relative == "pools.py":
             value = value.replace('"TON (TON)"', '"TON"')
         elif relative == "web/page.html":
@@ -803,11 +827,25 @@ def scaffold(config_path, output):
     (output / "data/snapshot.json").write_text(json.dumps({
         "schema": 1, "token": cfg["master"], "updated": 1,
         "errors": ["holders", "trades", "burns", "domains", "rates"]}))
-    (output / "project.json").write_text(json.dumps({
-        k: v for k, v in cfg.items() if not k.startswith("_")
-    }, ensure_ascii=False, indent=2))
+    exported = {k: v for k, v in cfg.items() if not k.startswith("_")}
+    if "_logo" in cfg:
+        exported["logo_file"] = "web/project-logo.webp"
+    if "_background" in cfg:
+        exported["background_file"] = "web/project-background.webp"
+    for badge in exported.get("badges", []):
+        if badge["id"] in cfg["_badge_icons"]:
+            badge["icon_file"] = ("web/badges/" + badge["id"] +
+                                  cfg["_badge_icons"][badge["id"]].suffix.lower())
+    (output / "project.json").write_text(
+        json.dumps(exported, ensure_ascii=False, indent=2))
     if cfg.get("_logo"):
         shutil.copy2(cfg["_logo"], output / "web/project-logo.webp")
+    if cfg.get("_background"):
+        shutil.copy2(cfg["_background"], output / "web/project-background.webp")
+    if cfg["_badge_icons"]:
+        (output / "web/badges").mkdir(exist_ok=True)
+        for key, original in cfg["_badge_icons"].items():
+            shutil.copy2(original, output / ("web/badges/" + key + original.suffix.lower()))
     (output / ".gitignore").write_text("build/\n__pycache__/\n*.pyc\n")
     (output / "README.md").write_text(
         "# " + cfg["name"] + " Observatory\n\n"
@@ -816,7 +854,7 @@ def scaffold(config_path, output):
         "Publish index.html in TON Sites only after independent on-chain verification.\n"
         "The initial snapshot is EMPTY: no market data is claimed.\n"
         "Only native TON swap pairs supported. Locks, staking and custom project NFT "
-        "badges must be implemented as separately verified adapters.\n"
+        "badges are configured through project.json and verified against TonAPI.\n"
         "Configure your GitHub workflow scheduler before launch.\n")
     banned = ("EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb",
               "the1000ludoman", "1000ludoman.xyz", "CryptoCheck",
