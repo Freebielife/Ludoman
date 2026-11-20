@@ -2,7 +2,7 @@
 const MASTER="EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb";
 const texts = {
   "ru": {
-    "navLiquidity":"Ликвидность","navSupply":"Заморозка / стейкинг","filterButton":"Фильтр", "filterByBadges":"Метки кошельков", "filterReset":"Сбросить",
+    "navLiquidity":"🔁 Торговые пулы","navSupply":"❄️ Заморозка и 🔒 стейкинг","filterButton":"Фильтр", "filterByBadges":"Метки кошельков", "filterReset":"Сбросить",
     "filterHint":"При выборе нескольких меток показываются кошельки, имеющие все выбранные метки.",
     "filterSearchPlaceholder":"Найти метку…",
     "volumeTitle": "Объём сделок",
@@ -51,6 +51,7 @@ const texts = {
     "burn": "Сжигание",
     "holders": "Держатели",
     "sellers": "Продавцы",
+    "services": "⚙️ Сервисы",
     "more": "Показать ещё",
     "less": "Свернуть",
     "copy": "Копировать адрес",
@@ -70,7 +71,7 @@ const texts = {
     "projectDirectory": "Сайт Ludoman",
     "navMarket": "📈 Рынок",
     "links": "🔗 Полезные ссылки",
-    "exploreContract": "Контракт на gram.org",
+    "exploreContract": "Контракт",
     "toMarket": "Открыть рынок",
     "up": "Наверх ↑",
     "capMethod": "Цена сделки на STON.fi × текущее общее предложение LUDOMAN, включая заблокированные токены. USD — по историческому курсу GRAM/USD от CoinGecko.",
@@ -113,7 +114,7 @@ const texts = {
     "noneTagged": "Среди проверенных адресов для этого фильтра записей нет."
   },
   "en": {
-    "navLiquidity":"Liquidity","navSupply":"Locks / staking","filterButton":"Filter", "filterByBadges":"Wallet badges", "filterReset":"Reset",
+    "navLiquidity":"🔁 Trading pools","navSupply":"❄️ Locks and 🔒 staking","filterButton":"Filter", "filterByBadges":"Wallet badges", "filterReset":"Reset",
     "filterHint":"Selecting multiple badges shows wallets that have all selected badges.",
     "filterSearchPlaceholder":"Search badges…",
     "volumeTitle": "Trade volume",
@@ -162,6 +163,7 @@ const texts = {
     "burn": "Burn",
     "holders": "Holders",
     "sellers": "Sellers",
+    "services": "⚙️ Services",
     "more": "Show more",
     "less": "Collapse",
     "copy": "Copy address",
@@ -181,7 +183,7 @@ const texts = {
     "projectDirectory": "Ludoman website",
     "navMarket": "📈 Market",
     "links": "🔗 Useful links",
-    "exploreContract": "Contract on gram.org",
+    "exploreContract": "Contract",
     "toMarket": "Open market",
     "up": "Back to top ↑",
     "capMethod": "STON.fi trade price × current total LUDOMAN supply, including locked tokens. USD uses historical GRAM/USD rates from CoinGecko.",
@@ -680,6 +682,19 @@ function chart(){
  volumeBars(start,end,width,left,right);
 
 }
+/* Shared compact animated buying and selling icons. */
+function trendMark(kind){
+ const buy=kind==="buy";
+ const mini=svg("svg",{viewBox:"0 0 52 28","class":"trendMini trend-"+kind,
+   "aria-hidden":"true",focusable:"false"});
+ const line=buy?"M3 24 L13 18 L21 20 L30 11 L39 13 L49 3":
+   "M3 4 L13 9 L21 7 L30 17 L39 15 L49 25";
+ const arrow=buy?"M41 3 L49 3 L49 11":"M41 25 L49 25 L49 17";
+ mini.append(svg("path",{d:line,"class":"trendBase"}),
+   svg("path",{d:line,"class":"trendLine"}),
+   svg("path",{d:arrow,"class":"trendArrow"}));
+ return mini;
+}
 function stats(){
  const trades=snapshot.trades,burns=snapshot.burns&&snapshot.zeroBurns?{...snapshot.burns,asOf:Math.min(snapshot.burns.asOf,snapshot.zeroBurns.asOf),rows:burnRows()}:snapshot.burns;
  const within=s=>(s?.rows||[]).filter(r=>r.time>s.asOf-day&&r.time<=s.asOf);
@@ -689,11 +704,16 @@ function stats(){
  const values=[
    [t("buys"),buys.length,t("volumeUnit")+" · "+format(sum(buys,"ton"))+" GRAM",trades,"buy"],
    [t("sells"),sells.length,t("volumeUnit")+" · "+format(sum(sells,"ton"))+" GRAM",trades,"sell"],
-   [t("people"),count(buys)+" / "+count(sells),t("buyers")+" / "+t("sellersLabel"),trades,""],
-   [t("burnedTotal")+" LUDOMAN",format(sum(within(burns),"ludoman")),t("events")+" · "+within(burns).length,burns,"burn"]];
+   ["👛 "+t("people"),count(buys)+" / "+count(sells),t("buyers")+" / "+t("sellersLabel"),trades,""],
+   [t("burnedTotal"),format(sum(within(burns),"ludoman")),t("events")+" · "+within(burns).length,burns,"burn"]];
  $("stats").replaceChildren(...values.map(([label,value,detail,source,cls])=>{
    const complete=source&&source.since<=source.asOf-day, item=el("div",undefined,"stat");
-   item.append(el("span",label,cls),el("b",complete?value:"—"),el("small",complete?detail:source?t("partial"):t("no")));return item;
+   const heading=el("span",undefined,"statHeading "+cls);
+   heading.append(document.createTextNode(label));
+   if(cls==="buy"||cls==="sell")heading.append(trendMark(cls));
+   if(cls==="burn")heading.append(el("span","🔥","statFire"));
+   item.append(heading,el("b",complete?value:"—"),el("small",complete?detail:source?t("partial"):t("no")));
+   return item;
  }));
 }
 function row(first,sub,value,last){const a=el("div"),b=el("div"),d=el("div",undefined,"row");a.append(first,sub);b.append(value,last);d.append(a,b);return d}
@@ -763,12 +783,7 @@ function list(){
    const titleGroup=el("span",undefined,"opTitleGroup");
    titleGroup.append(title);
    if(r.kind==="buy"||r.kind==="sell"){
-     const mini=svg("svg",{viewBox:"0 0 52 28","class":"trendMini trend-"+r.kind,"aria-hidden":"true",focusable:"false"});
-     const trendPath=r.kind==="buy"?"M3 24 L13 18 L21 20 L30 11 L39 13 L49 3":"M3 4 L13 9 L21 7 L30 17 L39 15 L49 25";
-     mini.append(svg("path",{d:trendPath,"class":"trendBase"}));
-     mini.append(svg("path",{d:trendPath,"class":"trendLine"}));
-     mini.append(svg("circle",{cx:"49",cy:r.kind==="buy"?"3":"25",r:"2.5","class":"trendDot"}));
-     titleGroup.append(mini);
+     titleGroup.append(trendMark(r.kind));
    }
    header.append(titleGroup,date);
    const amounts=el("div",undefined,"opAmounts");
@@ -788,6 +803,12 @@ function list(){
    transaction.rel="noopener noreferrer";
    footer.append(wallet,transaction);
    item.append(header,amounts,footer);
+   if(r.kind==="buy"||r.kind==="sell"){
+     const watermark=el("div",undefined,"operationWatermark");
+     watermark.setAttribute("aria-hidden","true");
+     for(let i=0;i<5;i++)watermark.append(brandMarkNode("ludoman"));
+     item.prepend(watermark);
+   }
    return item;
  }));
  if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
@@ -810,29 +831,37 @@ function rankedSellers(source){
  return [...groups.values()].sort((a,b)=>{
    if(a.units!==b.units)return a.units>b.units?-1:1;
    return a.wallet<b.wallet?-1:1;
- }).slice(0,20);
+ });
+}
+function serviceRole(wallet){
+ const role=snapshot.identity?.byWallet?.[wallet]?.role;
+ return typeof role==="string"&&role.trim()?role.trim():null;
 }
 function ranks(){
  const lastActivity=lastTradeByWallet();
- const isHolder=ranking==="holders",source=isHolder?snapshot.holders:snapshot.trades;
- select("views",[t("holders"),t("sellers")],isHolder?0:1,i=>{ranking=i?"sellers":"holders";ranks()});
+ const isHolder=ranking==="holders",isService=ranking==="services";
+ const source=ranking==="sellers"?snapshot.trades:snapshot.holders;
+ const views=["holders","sellers","services"];
+ select("views",[t("holders"),t("sellers"),t("services")],views.indexOf(ranking),i=>{ranking=views[i];ranks()});
  $("sellerPeriods").replaceChildren();
- if(!isHolder)select("sellerPeriods",t("dayLabels"),[1,7,30].indexOf(sellerDays),i=>{sellerDays=[1,7,30][i];ranks()});
- const data=isHolder?source?.holders||[]:rankedSellers(source);
- const previous=isHolder?source?.previousRanks:source?.previousRanks?.[sellerDays];
+ if(!isHolder&&!isService)select("sellerPeriods",t("dayLabels"),[1,7,30].indexOf(sellerDays),i=>{sellerDays=[1,7,30][i];ranks()});
+ const data=(isHolder||isService?(source?.holders||[]).filter(r=>Boolean(serviceRole(r.wallet))===isService):
+   rankedSellers(source).filter(r=>!serviceRole(r.wallet))).slice(0,20);
+ // Historical ranks mixed services and people; do not display misleading movements.
+ const previous=null;
  $("rank").replaceChildren(...data.map((r,i)=>{
    const title=el("b");
-   title.append(rankPosition(i,previous?.[r.wallet]),walletIdentity(r.wallet,r.name,isHolder?lastActivity.get(r.wallet):"sell",{holder:isHolder}));
-   const entry=row(title,el("small",isHolder?t("balance"):t("sold")),
-     el("b",format(isHolder?r.ludoman:Number(r.units)/1e9)+" LUDOMAN"),
-     el("small",isHolder?format(r.share,4)+"%":(lang==="ru"?"Сделок: ":"Trades: ")+countFormat(r.count)));
+   title.append(rankPosition(i,previous?.[r.wallet]),walletIdentity(r.wallet,r.name,(isHolder||isService)?lastActivity.get(r.wallet):"sell",{holder:isHolder||isService}));
+   const entry=row(title,el("small",(isHolder||isService)?t("balance"):t("sold")),
+     el("b",format((isHolder||isService)?r.ludoman:Number(r.units)/1e9)+" LUDOMAN"),
+     el("small",(isHolder||isService)?format(r.share,4)+"%":(lang==="ru"?"Сделок: ":"Trades: ")+countFormat(r.count)));
    entry.classList.add("rankingRow");
    if(i<10&&isHolder){
      entry.classList.add("diamondHands");
      entry.firstElementChild.prepend(el("span","💎 Diamond Hands","rankHonor diamondHonor"));
-   }else if(i<10&&!isHolder&&(sellerDays===7||sellerDays===30)){
-     entry.classList.add("paperHands");
-     entry.firstElementChild.prepend(el("span","🧻 Paper Hands","rankHonor paperHonor"));
+   }else if(i<10&&!isService&&!isHolder&&(sellerDays===7||sellerDays===30)){
+     entry.classList.add("bestSellers");
+     entry.firstElementChild.prepend(el("span","🔁 Best Sellers","rankHonor bestHonor"));
    }
    return entry;
  }));
