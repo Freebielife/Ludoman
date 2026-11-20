@@ -20,10 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Prepare image and Chromium test tools
-        run: |
-          pip install --disable-pip-version-check Pillow playwright
-          python -m playwright install --with-deps chromium
+      - name: Prepare image processing dependency
+        run: pip install --disable-pip-version-check Pillow
       - name: Generate TAC-only observatory
         run: |
           python -m scripts.build_tac_pilot
@@ -39,6 +37,10 @@ jobs:
         run: |
           python build.py
           python verify.py
+      - name: Install Chromium for responsive checks
+        run: |
+          pip install --disable-pip-version-check playwright
+          python -m playwright install chromium
       - name: Test TAC site in mobile and desktop Chromium
         run: python tests/tac_pilot_browser.py
       - name: Upload complete pilot and browser previews
