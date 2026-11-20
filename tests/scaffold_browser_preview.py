@@ -79,6 +79,7 @@ def main():
             assert page.locator("#wallets .badgeLegend dt").count() == 5
             assert page.locator("#wallets .badgeLegend dt[data-project-badge='testbadge'] img").count() == 1
             assert page.locator("#badgeFilterList .badgeFilterItem").count() == 5
+            assert page.locator("#badgeFilterList .badgeFilterItem img").count() == 1
             assert page.locator(".hero .introLinks a[href^='https://t.me/']").count() == 0
             assert page.evaluate("getComputedStyle(document.body).backgroundImage").find("image/webp") >= 0
             assert page.locator('#pools a[href^="https://dedust.io/pools/"]').count() == 1
