@@ -318,6 +318,60 @@ def app_js(source, cfg):
                         source, count=1, flags=re.S)
     if n != 1:
         raise ProjectError("Cannot remove project badges")
+    # Preserve only common badges. The cloned page must never contain Ludoman
+    # NFT thresholds, personal Telegram links or JVault/Arni/Joystick logic.
+    shared = '''function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
+  const identity=snapshot.identity?.byWallet?.[wallet];
+  const badges=el("span",undefined,"projectBadges");
+  if(identity?.activated){
+    const date=new Date(identity.activated*1000);
+    const fifth=new Date(date);
+    fifth.setUTCFullYear(date.getUTCFullYear()+5);
+    if(fifth.getUTCMonth()!==date.getUTCMonth())fifth.setUTCDate(0);
+    if(Date.now()>fifth.getTime()){
+      const badge=el("span",undefined,"projectBadge og");
+      badge.append(el("span","OG"));
+      badge.title=t("activated")+" "+stamp(identity.activated);
+      badge.setAttribute("aria-label","OG · "+badge.title);
+      badges.append(badge);
+    }
+  }
+  const fragment=snapshot.fragmentNumbers?.byWallet?.[wallet];
+  if(ownsFragment ?? (fragment?.owns && fragment.checkedAt>=Date.now()/1000-2*day)){
+    const badge=el("span","+888","projectBadge fragmentNumber");
+    badge.title=t("badgeFragment");
+    badge.setAttribute("aria-label","+888 · "+badge.title);
+    badges.append(badge);
+  }
+  const domains=snapshot.domains?.byWallet?.[wallet];
+  const digits=numericDomains(wallet,verifiedDomain);
+  appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
+  if((burnTotals?.get(wallet)||0n)>=1000n*10n**9n){
+    const badge=el("span","🔥","projectBadge burner");
+    badge.title=t("burnBadge");
+    badge.setAttribute("aria-label",badge.title);
+    badges.append(badge);
+  }
+  if(badges.childElementCount)wrapper.append(badges);
+}
+'''
+    source, n = re.subn(
+        r'function appendProjectBadges\(.*?\n}\n(?=\nfunction appendDomainBadge)',
+        lambda _: shared.rstrip("\n"), source, count=1, flags=re.S)
+    if n != 1:
+        raise ProjectError("Cannot replace legacy project-specific badge engine")
+    source = source.replace('const authorCollection="";', '')
+    source = source.replace('const projectBadgeDefs=[];', '')
+    source = replace(source,
+                     'const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};',
+                     'const legendBrands={"+888":"fragment"};',
+                     "foreign badge guide logos")
+    for key in ("badgeStaking", "badgeAuthor", "badgeVnuk",
+                "badgeJoystick", "badgePhoenix", "badgeBlue",
+                "badgeArni", "badgeNapiwas", "badgeSub",
+                "blueCollection", "supplyFrozenHint", "supplyStakedHint"):
+        source = re.sub(r'("'+key+r'"\s*:\s*)"[^"]*"', r'\1""', source)
+    source = source.replace('kito:"K",', '').replace('usda:"U",', '').replace('rton:"R",', '')
     source, n = re.subn(r'const badgeFilterDefs=\[.*?\];',
                         'const badgeFilterDefs=[["og","OG"],["fragmentNumber","+888"],'
                         '["digits","0000.ton"],["burner","🔥 Burn"]];',
@@ -523,6 +577,12 @@ def scaffold(config_path, output):
         if relative == "tests/market-cap.test.cjs":
             value = replace(value, "project:String(project)",
                             "tokenAmount:String(project)", "generic market-cap fixture")
+        if relative == "assets.py":
+            value = replace(
+                value,
+                r'DOMAIN = re.compile(r"(?!(?:[a-z0-9-]+\.)*socool\.ton$)(?:[a-z0-9-]+\.)+ton")',
+                r'DOMAIN = re.compile(r"(?:[a-z0-9-]+\.)+ton")',
+                "remove project-specific socool.ton domain exclusion")
         if relative == "web/app.js":
             value = app_js(value, cfg)
         if relative == "web/telegram-taste.css":
