@@ -22,7 +22,7 @@ This document records the reusable design and interaction rules validated in **L
 ## Rankings
 
 - **Diamond Hands 💎:** top 10 holders only. A shimmering multicolour precious-stones frame and gemstone ornament, without compromising text legibility.
-- **Paper Hands 🧻:** top 10 sellers **in the 7-day and 30-day views only**. Animated frame, with repeated semi-transparent toilet-roll ornament across the card background. No Paper Hands in the 24-hour sellers view.
+- **Best Sellers 🔁:** top 10 sellers **in the 7-day and 30-day views only**. Animated frame and restrained swap/transaction ornaments. No Best Sellers award in the 24-hour sellers view.
 - Both rank labels are **visual honors, not additional blockchain claims**. Other verified project/NFT badges remain visible.
 
 ## Banner and global interface
@@ -33,7 +33,7 @@ This document records the reusable design and interaction rules validated in **L
 
 ## Before marking future projects as supported
 
-Replace hard-coded LUDOMAN/GRAM symbols, master contract, art, URLs, all wallet badge source definitions and upstream collector parameters with **validated project configuration**. Check trading pair addresses, frozen and staked amounts, badge ownership and update cadence before deployment. Current Ludoman is a reference implementation, not yet that configurable generator.
+For new projects, use **scripts/scaffold_observatory.py** and a validated project JSON as documented in **docs/NEW_PROJECT_FACTORY.md**. Production Ludoman remains the reference instance. Only direct native TON pairs are currently supported by the portable collector; project-specific staking, locks, cross-asset trades, branding and special NFT badges require separately verified adapters.
 
 ## Validation checklist
 
@@ -45,7 +45,7 @@ Replace hard-coded LUDOMAN/GRAM symbols, master contract, art, URLs, all wallet 
 ## Ludoman interface refinement — 19 Nov 2026
 
 - Operation cards stay compact: time in the header, token/GRAM amounts side by side, wallet and a simple "Транзакция" / "Transaction" hyperlink in the same footer row. No per-card chevrons, no arrows beside that hyperlink, no repeated timestamps. Buy and sell headings include small animated upward/downward chart marks; the full line remains visible when reduced motion is requested.
-- Six navigation links: Market, Operations, Rankings, Liquidity (goes to #pools), Locks/Staking (goes to #supply), Links. On 360–390px viewports use a 3-by-2 grid with all six labels visible.
+- Six navigation links: Market, Operations, Rankings, Trading pools (goes to #pools), Locks/Staking (goes to #supply), Links. On 360–390px viewports use a 3-by-2 grid with all six labels visible.
 - Diamond Hands holders: moving multicolour border, gemstone motif, animated gemstone lettering on wallet/domain and honor label. Known service accounts (snapshot.identity.byWallet[wallet].role) also receive a gear, not inferred guesses.
 - Liquidity pool cards have distinct dark accents: DeDust yellow, STON.fi blue, Tonco green; mixed providers use a neutral mixture. This is a visual rule and does not imply a Tonco pool exists when no verified pool is in the snapshot.
 - Frozen balances (❄️) and staking (🔒) appear below Operations and Rankings, with an **estimated** USD value only when both a valid LUDOMAN/GRAM market quote and GRAM/USD rate exist. No exchange price or amount is invented when missing.
