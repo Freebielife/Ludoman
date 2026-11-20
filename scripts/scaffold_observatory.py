@@ -24,7 +24,7 @@ CORE = ("trade_history.py", "tests/test_trade_history.py", "service_registry.py"
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",
-        "scripts/refresh_observatory.py",
+        "scripts/refresh_observatory.py", "tests/test_refresh_sources.py",
         "tests/market-cap.test.cjs", "tests/snapshot-loader.test.cjs")
 COMMON_SVGS = ("brands/telegram.svg", "brands/ton.svg", "brands/usdt.svg",
                "brands/github.svg", "brands/x.svg",
@@ -306,7 +306,10 @@ RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
         return "unclassified_contract"
     return None
 '''
-    return schema(generic(head + "\n\n".join(methods), cfg))
+    generated = schema(generic(head + "\n\n".join(methods), cfg))
+    generated = generated.replace('start = max(1, previous.get("asOf", 1) - 3600)',
+                                  'start = max(1, previous.get("asOf", now - 7 * 86400) - 3600)')
+    return generated
 
 
 def image_uri(path):
@@ -852,6 +855,10 @@ def scaffold(config_path, output):
         if relative == "tests/market-cap.test.cjs":
             value = replace(value, "project:String(project)",
                             "tokenAmount:String(project)", "generic market-cap fixture")
+            value = value.replace("=>({time,", "=>({pool:" + json.dumps(cfg["primary_pool"]) + ",time,")
+            value = value.replace("...row(190,10),dex:'DeDust'",
+                                  "...row(190,10),dex:'DeDust',pool:'other-pool'")
+            value = value.replace("filters out DeDust prices", "filters other pool prices")
         if relative == "assets.py":
             value = replace(
                 value,
@@ -903,10 +910,9 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
         elif relative == "web/page.html":
             value = page_html(value, cfg)
         elif relative == "web/market-cap.js":
-            first = next(p for p in cfg["pools"] if p["address"] == cfg["primary_pool"])
-            value = replace(value, 'r.dex==="STON.fi"',
-                            'r.dex===' + json.dumps(DEXES[first["dex"]][0]),
-                            "source DEX for market chart")
+            value = replace(value, '(!r.dex||r.dex==="STON.fi")',
+                            'r.pool===' + json.dumps(cfg["primary_pool"]),
+                            "exact source pool for market chart")
         elif relative == "scripts/icon_pack.py":
             value = replace(
                 value, '    data=json.loads((root/"approved-brand-atlas.json").read_text())',

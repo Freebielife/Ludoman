@@ -18,6 +18,8 @@ import observatory
 import pools
 import trades
 import trade_history
+import badges
+import domains
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "data/snapshot.json"
@@ -70,6 +72,15 @@ def refresh() -> dict:
     else:
         errors.discard("serviceRegistry")
     save(snap)
+    def collect_burns(previous):
+        since = max(1, int(previous.get("asOf", now - 7 * 86400)) - 3600)
+        rows, covered = assets.burns(previous.get("rows", []), since)
+        return {"asOf": now, "since": min(int(previous.get("since", covered)), covered),
+                "rows": rows}
+
+    stage("burns", collect_burns, interval=1800)
+    stage("zeroBurns", lambda previous: observatory.zero_burns(previous, now),
+          interval=6*3600)
     stage("trades", lambda previous: trades.collect(previous, now - trade_history.YEAR,
                                                       now, max_pages=35))
     if trade_history.refresh(snap, now, save=save):
@@ -84,6 +95,11 @@ def refresh() -> dict:
     # Deep account metadata is verified slowly across many refreshes; a large
     # balance alone must never be used to assert a named service.
     stage("identity", lambda _: observatory.identity(snap, now, budget=6, pace=0.2))
+    stage("badges", lambda previous: {**badges.refresh(previous, now), "asOf": now},
+          interval=6*3600)
+    stage("domains", lambda _: domains.enrich(snap, now), interval=1800)
+    stage("fragmentNumbers", lambda _: badges.refresh_fragment_numbers(snap, now),
+          interval=1800)
     snap["errors"] = sorted(errors)
     if any(snap.get(key) for key in ("holders", "trades", "rates", "pools")):
         snap["updated"] = int(time.time())
