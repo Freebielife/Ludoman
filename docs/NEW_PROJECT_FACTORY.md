@@ -43,7 +43,25 @@ Prepare a JSON config outside the source directory, for example:
         "website": "https://example.com",
         "telegram": "https://t.me/example"
       },
-      "services": {}
+      "services": {},
+      "logo_file": "images/logo.webp",
+      "background_file": "images/background.webp",
+      "badges": [
+        {
+          "id": "community",
+          "label": "Community",
+          "description_ru": "Держатель выбранного jetton или NFT",
+          "description_en": "Owns the configured jetton amount or NFT",
+          "color": "#55BBDD",
+          "icon_file": "images/community.gif",
+          "url": "https://example.com",
+          "match": "any",
+          "criteria": [
+            {"type": "jetton_min", "master": "REPLACE_WITH_VERIFIED_JETTON_MASTER", "min_balance": 200000},
+            {"type": "nft_collection", "collection": "REPLACE_WITH_VERIFIED_NFT_COLLECTION"}
+          ]
+        }
+      ]
     }
 
 The above is intentionally **not executable** until the contract and pool
@@ -76,6 +94,19 @@ shared Cloudflare Observatory Runner. Its deployment and GitHub credentials must
 be configured separately. The generator does **not** install secrets, create
 repositories, deploy Cloudflare Workers, or publish a TON Storage bag.
 
+## Per-project theme and badges
+
+- **Hero Telegram button:** appears only when \`links.telegram\` is configured. Its URL is copied from that project only; if Telegram is not configured, the hero has no Telegram button. The bottom links panel follows the same rule.
+- **Project background:** optional \`background_file\`, a local WebP (up to 750 KB) relative to the input JSON; when absent, a generic dark geometric background is used. The image becomes base64 data inside \`index.html\`, with no runtime network dependency.
+- **Logo:** optional \`logo_file\`, local WebP up to 150 KB, otherwise a neutral symbol placeholder.
+- **Custom badges:** optional \`badges\` array (up to 12 entries). Each badge requires a unique ID, an on-screen label, descriptions in RU and EN, and **1–3 independently confirmed on-chain proof conditions**. Optional \`icon_file\` may be a local WebP (including an animated WebP) or GIF, up to 150 KB. Without an icon, a text fallback is displayed. Optional \`color\` is a six-digit CSS RGB color and \`url\` is a verified HTTPS detail link.
+- Supported proof types are \`{"type":"jetton_min","master":"<address>","min_balance":200000}\` and \`{"type":"nft_collection","collection":"<address>"}\`. Set \`"match":"any"\` for OR across the conditions or \`"match":"all"\` for AND. The collector reads qualified wallet addresses via TonAPI, verifies the requested jetton metadata or collection ownership information, and refreshes source data no more frequently than every **six hours**. Partial or failed source checks never qualify previously unverified wallets. Wallet display suppresses proof data older than 24 hours.
+- Configured badges automatically appear beside qualifying wallets, in the **Operations** filter list, and inside the bilingual expandable **Badge Guide** with their own artwork and descriptions.
+- **Do not invent badge eligibility:** the generator validates address shape and proof rule structure, but the owner must independently verify each real contract address and its meaning before launch.
+- **Preferences:** localStorage language and currency keys include the new token's slug and master identifier; multiple sites sharing one origin do not overwrite each other's choices.
+
+All selected images and badge icons are bundled into the standalone HTML. The generator also copies the source art into the new project under \`web/\` and preserves their paths in the exported \`project.json\`. To change badges or images after generation, run the scaffold with the revised project JSON into a **new empty directory**; it deliberately refuses to overwrite existing projects.
+
 ## Important limits
 
 1. Basic event collection currently supports **direct token/native TON swaps**
@@ -96,7 +127,7 @@ repositories, deploy Cloudflare Workers, or publish a TON Storage bag.
    setting; when omitted, a neutral symbol placeholder is generated.
 5. The new GitHub repository must be independently authorized for its own
    Actions token/permissions. The generated snapshot loader always targets that
-   repository. Each site's localStorage language/currency keys are isolated.
+   repository. Each site's language/currency keys are separated by token slug and master address.
 6. Running this factory is a **source-code scaffold**, not a verification that
    the supplied pool address belongs to the token. Always check that relation
    against reliable on-chain data before launch.
@@ -106,7 +137,8 @@ repositories, deploy Cloudflare Workers, or publish a TON Storage bag.
 - Compare generated token master and metadata decimals to chain results.
 - Compare both token sides and DEX type for every configured pool.
 - Check the primary chart's source and trade/burn sample transactions.
-- Check labels, social links and token art; no other project's branding.
+- Check labels, optional hero Telegram link, social links and token background/art; no other project's branding.
+- Check each custom badge condition, artwork, on-chain proof, bilingual help and filter behavior.
 - Run the Python unit tests and Node tests; build, verify, then check browser
   layout at 360, 390, 768 and 1280 px, with RU/EN switching.
 - Confirm GitHub remote refresh and the first real snapshot.
