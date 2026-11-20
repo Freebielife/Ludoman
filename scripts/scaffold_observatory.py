@@ -129,7 +129,8 @@ def generic(source, cfg):
             .replace("__OBSERVATORY_BG__", "__PROJECT_BG__")
             .replace("LUDOMAN", cfg["symbol"])
             .replace("Ludoman", cfg["name"])
-            .replace("ludoman", "project"))
+            .replace("ludoman", "project")
+            .replace("GRAM", "TON"))
 
 
 def schema(source):
@@ -493,6 +494,9 @@ def scaffold(config_path, output):
                         "web/app.js", "web/market-cap.js",
                         "tests/market-cap.test.cjs"):
             value = schema(value)
+        if relative == "tests/market-cap.test.cjs":
+            value = replace(value, "project:String(project)",
+                            "tokenAmount:String(project)", "generic market-cap fixture")
         if relative == "web/app.js":
             value = app_js(value, cfg)
         elif relative == "web/page.html":
