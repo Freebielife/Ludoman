@@ -366,6 +366,9 @@ def app_js(source, cfg):
                      'const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};',
                      'const legendBrands={"+888":"fragment"};',
                      "foreign badge guide logos")
+    source = source.replace(
+        "// +888 and author NFT stay legible; their service artwork appears in the badge guide.",
+        "// Common badge art and status are kept independent of project NFT collections.")
     for key in ("badgeStaking", "badgeAuthor", "badgeVnuk",
                 "badgeJoystick", "badgePhoenix", "badgeBlue",
                 "badgeArni", "badgeNapiwas", "badgeSub",
@@ -639,7 +642,7 @@ def scaffold(config_path, output):
     (output / ".gitignore").write_text("build/\n__pycache__/\n*.pyc\n")
     (output / "README.md").write_text(
         "# " + cfg["name"] + " Observatory\n\n"
-        "Generated from a reusable TON UI, without Ludoman assets or references.\n\n"
+        "Generated from the reusable TON Observatory framework.\n\n"
         "Run python3 collect.py; python3 build.py; python3 verify.py.\n"
         "Publish index.html in TON Sites only after independent on-chain verification.\n"
         "The initial snapshot is EMPTY: no market data is claimed.\n"
