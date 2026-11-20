@@ -13,7 +13,7 @@ MASTER_RAW = "0:db2a2857319b8d7e5ee6ed570dac72326186200853e171c22a34dfe870d9fe3c
 RAW_ADDRESS = re.compile(r"-?[0-9]+:[0-9a-f]{64}")
 DOMAIN = re.compile(r"(?!(?:[a-z0-9-]+\.)*socool\.ton$)(?:[a-z0-9-]+\.)+ton")
 BURN_NOTIFICATION = "0x7bdd97de"
-HOLDER_LIMIT = 20
+HOLDER_LIMIT = 100
 
 
 def fetch(path, attempts=3, *, api=API):
