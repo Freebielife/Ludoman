@@ -336,17 +336,17 @@ def app_js(source, cfg):
     source = replace(source, 'padEnd(9,"0")', 'padEnd(' + precision + ',"0")',
                      "fraction padding")
     source = replace(source,
-                     'function volumeBars(start,end,width,left,right){\\n const main=$("tradeVolume");'.replace('\\n', '\n'),
-                     'function volumeBars(start,end,width,left,right){\\n const main=$("tradeVolume");\\n'
-                     ' if(!snapshot.trades){\\n'
-                     '   $("volumeBuys").textContent=t("buys")+" · —";\\n'
-                     '   $("volumeSells").textContent=t("sells")+" · —";\\n'
-                     '   $("volumeEmpty").hidden=false;\\n'
-                     '   $("volumeEmpty").textContent=t("no");\\n'
-                     '   main.replaceChildren();\\n'
-                     '   return;\\n'
-                     ' }'.replaceAll('\\n', '\n'),
-                     "do not display fabricated zero volume without a snapshot")
+                     'function volumeBars(start,end,width,left,right){\n const main=$("tradeVolume");',
+                     'function volumeBars(start,end,width,left,right){\n const main=$("tradeVolume");\n'
+                     ' if(!snapshot.trades){\n'
+                     '   $("volumeBuys").textContent=t("buys")+" · —";\n'
+                     '   $("volumeSells").textContent=t("sells")+" · —";\n'
+                     '   $("volumeEmpty").hidden=false;\n'
+                     '   $("volumeEmpty").textContent=t("no");\n'
+                     '   main.replaceChildren();\n'
+                     '   return;\n'
+                     ' }\n',
+                     "avoid fake zero volume before first snapshot")
     source = replace(source, 'const axisTime=seconds=>new Date(seconds*1000).toLocaleString',
                      'const axisTime=seconds=>Number.isFinite(seconds)?new Date(seconds*1000).toLocaleString',
                      "avoid invalid dates before initial snapshot")
