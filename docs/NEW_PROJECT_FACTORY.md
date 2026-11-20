@@ -94,6 +94,34 @@ shared Cloudflare Observatory Runner. Its deployment and GitHub credentials must
 be configured separately. The generator does **not** install secrets, create
 repositories, deploy Cloudflare Workers, or publish a TON Storage bag.
 
+## Common ecosystem flags and verified wallet identities
+
+The factory automatically embeds a **sanitized** static WebP atlas of owner-approved
+TONecoFlags for ecosystem services: TON #002, Telegram #001, STON.fi #019,
+DeDust #020 and other individually mapped common services. Project-specific
+Ludoman, KITO, GRAM and unverified placeholder tiles are physically blanked
+during generation. The original source is retained only in the Ludoman repository.
+Install **Pillow** in the build environment (`pip install Pillow`) to extract
+this neutral atlas; the resulting single HTML remains entirely offline.
+
+The project token logo is always sourced from that project's own `logo_file`.
+A project website gets its own token emblem by matching the **exact configured
+hostname**, rather than hard-coded names like Ludoman or TAC. A quote-asset
+emblem is drawn only if a trading pool identifies a verified native TON or
+USDT master contract; other ticker names remain plain text to avoid false
+identity claims.
+
+For wallet classification, the generated `observatory.py` can recognize
+specifically identified DeDust/STON.fi contract interfaces and independently
+configured service wallet addresses. An active TON smart contract that does not
+implement a wallet interface is labelled **unclassified smart contract**, not
+a confirmed exchange, bridge or person. Enabling identity enrichment in the
+scheduler is required for labels to appear; the program must never infer
+services from unusually large balances.
+
+The pools section does not display the previous dated GeckoTerminal audit line.
+The data itself keeps its `asOf` field for checking provenance.
+
 ## Per-project theme and badges
 
 - **Hero Telegram button:** appears only when \`links.telegram\` is configured. Its URL is copied from that project only; if Telegram is not configured, the hero has no Telegram button. The bottom links panel follows the same rule.
