@@ -124,6 +124,14 @@ The data itself keeps its `asOf` field for checking provenance.
 
 ## Per-project theme and badges
 
+**Optional official staking URL:** configure \`links.staking\` with a verified
+HTTPS staking page. The factory creates a branded button in project resources
+and a bilingual link in the staking section. It does **not** infer yield,
+validator state, staked balances, chain status or custody guarantees from the
+link. TAC native-chain staking must be sourced from the TAC chain, not from
+TON jetton balances alone.
+
+
 - **Hero Telegram button:** appears only when \`links.telegram\` is configured. Its URL is copied from that project only; if Telegram is not configured, the hero has no Telegram button. The bottom links panel follows the same rule.
 - **Project background:** optional \`background_file\`, a local WebP (up to 750 KB) relative to the input JSON; when absent, a generic dark geometric background is used. The image becomes base64 data inside \`index.html\`, with no runtime network dependency.
 - **Logo:** optional \`logo_file\`, local WebP up to 150 KB, otherwise a neutral symbol placeholder.
