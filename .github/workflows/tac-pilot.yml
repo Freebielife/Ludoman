@@ -6,6 +6,7 @@ on:
     paths:
       - 'examples/tac-pilot/**'
       - 'scripts/build_tac_pilot.py'
+      - 'scripts/tac_seed_snapshot.py'
       - 'tests/tac_pilot_browser.py'
       - '.github/workflows/tac-pilot.yml'
   workflow_dispatch:
@@ -27,11 +28,10 @@ jobs:
           python -m scripts.build_tac_pilot
           node --check build/tac-pilot/web/app.js
           node --test build/tac-pilot/tests/*.test.cjs
-      - name: Collect verified on-chain data if available
+      - name: Stage verified on-chain data with incremental saves
         id: collect
         continue-on-error: true
-        working-directory: build/tac-pilot
-        run: timeout --signal=TERM 280 python collect.py
+        run: timeout --signal=TERM 150 python -m scripts.tac_seed_snapshot
       - name: Assemble self-contained TAC HTML
         working-directory: build/tac-pilot
         run: |
