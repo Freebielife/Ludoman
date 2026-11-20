@@ -585,3 +585,135 @@ html{scroll-behavior:smooth}
 
 /* Wallet-service logos belong to the guide, without changing the identity badges. */
 #wallets .badgeLegend dt .brandGlyph{width:17px;height:17px;min-width:17px;flex:0 0 17px;vertical-align:middle;margin-right:4px}
+
+/* LUDOMAN 2026 UX revision — approved icons, trading semantics and mobile polish. */
+.brandInline{display:inline-flex;align-items:center;gap:5px;vertical-align:middle;white-space:nowrap}
+.heroChain,.marketChain{display:flex;align-items:center;flex-wrap:wrap;column-gap:7px;row-gap:7px}
+.brandInline .brandGlyph{width:27px;height:27px;min-width:27px;flex:0 0 27px;border-radius:6px}
+.heroChain .brandGlyph,.marketChain .brandGlyph{width:29px;height:29px;min-width:29px;flex-basis:29px}
+.dexTag{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.4}
+.dexTag .brandGlyph{width:24px;height:24px;min-width:24px;flex-basis:24px}
+.brandGlyph{width:28px;height:28px;min-width:28px;flex:0 0 28px;font-size:12px}
+.brandGlyph img{width:23px;height:23px;object-fit:contain}
+.brandGlyph svg{width:21px;height:21px}
+.brandGlyph .brandTile{border-radius:5px}
+#pools .poolCard h3 .brandGlyph{width:26px;height:26px;min-width:26px;flex:0 0 26px}
+#pools .poolCard .dexMarks .brandGlyph{width:23px;height:23px;min-width:23px;flex:0 0 23px}
+#pools .poolActions a{display:inline-flex;gap:8px;align-items:center;flex-wrap:nowrap}
+#pools .poolActions a .brandGlyph{width:24px;height:24px;min-width:24px;flex:0 0 24px}
+.introLinks a{gap:8px}
+.introLinks a .brandGlyph{width:27px;height:27px;min-width:27px;flex:0 0 27px}
+.hero .introLinks a[href^="https:"]::after{content:none!important;display:none!important}
+#links .resourceList{display:flex!important;flex-wrap:wrap;align-content:flex-start;align-items:flex-start;gap:9px}
+#links .resourceList>a,#links .resourceList>button{
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:9px;
+  flex:0 1 auto;width:max-content;max-width:100%;min-height:48px;
+  padding:9px 12px;font-size:clamp(13px,1.5vw,15px);line-height:1.25;
+  overflow-wrap:anywhere;text-align:left
+}
+#links .resourceList>a .brandGlyph{width:30px;height:30px;min-width:30px;flex:0 0 30px}
+#links .resourceList>a::after{content:none!important;display:none!important}
+#links .resourcesGrid article{min-width:0}
+#links #contractAddress{font-size:12px;overflow-wrap:anywhere}
+#supply .supplyGrid a .brandGlyph{width:27px;height:27px;min-width:27px;flex:0 0 27px}
+#stats .statHeading{
+ display:flex;align-items:center;gap:9px;min-width:0;min-height:28px;
+ border:0;background:none;padding:0;color:#d7e8f9;
+ font-weight:750;line-height:1.3;white-space:normal
+}
+#stats .statHeading.buy{color:#81eac0}
+#stats .statHeading.sell{color:#ffacb4}
+#stats .statHeading.burn{color:#ffcb88}
+#stats .statHeading .trendMini{width:41px;height:22px}
+#stats .statHeading .statFire{font-size:22px;line-height:1;display:inline-block;
+ transform-origin:50% 90%;animation:statFireFlicker 1.8s ease-in-out infinite alternate}
+@keyframes statFireFlicker{
+ 0%{transform:rotate(-8deg) scale(.92);filter:brightness(.92)}
+ 55%{transform:rotate(5deg) scale(1.15);filter:brightness(1.15)}
+ 100%{transform:rotate(-2deg) scale(1.02);filter:brightness(1.3)}
+}
+.trendMini{width:45px;height:24px;flex:0 0 auto;overflow:visible}
+.trendMini.trend-buy{color:#56ebac}
+.trendMini.trend-sell{color:#ff899d}
+.trendMini .trendBase,.trendMini .trendLine,.trendMini .trendArrow{
+ fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round
+}
+.trendMini .trendBase{stroke-width:1.9;opacity:.27}
+.trendMini .trendLine{stroke-width:2.6;stroke-dasharray:75;stroke-dashoffset:75;
+ animation:trendDraw 3.3s ease-in-out infinite}
+.trendMini .trendArrow{stroke-width:2.9;opacity:0;
+ animation:trendArrowReveal 3.3s ease-in-out infinite}
+@keyframes trendArrowReveal{
+ 0%,25%{opacity:0;stroke-dasharray:20;stroke-dashoffset:20}
+ 43%,83%{opacity:1;stroke-dasharray:20;stroke-dashoffset:0}
+ 100%{opacity:0;stroke-dashoffset:20}
+}
+#feed .operationRow{position:relative;isolation:isolate;overflow:hidden}
+#feed .operationRow .operationWatermark{
+ position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);
+ grid-template-rows:repeat(2,1fr);align-items:center;justify-items:center;
+ pointer-events:none;z-index:0;transform:rotate(-12deg) scale(1.06);opacity:.18
+}
+#feed .operationRow .operationWatermark .brandGlyph{
+ display:block;width:46px;height:46px;min-width:46px;flex:none;
+ border:0;border-radius:7px;background:none;box-shadow:none;
+}
+#feed .operationRow .operationWatermark .brandTile{border-radius:7px}
+#feed .operationRow >:not(.operationWatermark){position:relative;z-index:1}
+#feed .operationRow .trendMini{width:43px;height:23px}
+#rank .rankingRow.bestSellers{
+ position:relative;isolation:isolate;overflow:hidden;border:2px solid transparent;
+ background:linear-gradient(#192d3a,#192d3a) padding-box,
+ linear-gradient(105deg,#247986,#82d7b1,#5472c6,#247986) border-box;
+ background-size:100% 100%,330% 330%;animation:bestSellerBorder 9s linear infinite
+}
+#rank .rankingRow.bestSellers::before{
+ content:"⇄  ↗   ⇄  ↘   ↗   ⇄   ↘   ⇄   ↗   ⇄";
+ position:absolute;inset:0;overflow:hidden;word-break:break-all;
+ font:750 23px/1.8 system-ui,sans-serif;letter-spacing:17px;
+ color:#80decd;opacity:.13;pointer-events:none;
+ transform:rotate(-8deg) scale(1.12);
+ animation:bestSellerFlow 8s ease-in-out infinite alternate;
+ z-index:0
+}
+#rank .rankingRow.bestSellers > div{position:relative;z-index:1;min-width:0}
+#rank .bestHonor{
+ color:#dffff7;background:linear-gradient(115deg,#115467,#20634a);
+ border:1px solid #82d7b1a8;font-weight:800;white-space:nowrap
+}
+@keyframes bestSellerBorder{from{background-position:0 0,0% 50%}to{background-position:0 0,100% 50%}}
+@keyframes bestSellerFlow{from{transform:rotate(-8deg) translateX(-9px) scale(1.12)}to{transform:rotate(-8deg) translateX(11px) scale(1.12)}}
+#views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+#views button{min-width:0;padding:10px 5px;white-space:normal;line-height:1.3}
+#wallets .badgeLegend dl{grid-template-columns:minmax(94px,auto) 1fr;gap:8px 10px}
+#wallets .badgeLegend dt{display:flex;align-items:center;gap:6px;min-width:0}
+#wallets .badgeLegend dt .badgePreview{
+ display:inline-flex;align-items:center;justify-content:center;
+ flex:0 0 auto;min-width:31px;min-height:28px;
+ padding:3px 5px;margin:0;overflow:visible
+}
+#wallets .badgeLegend dt .badgePreview img{width:23px;height:23px;object-fit:contain}
+#wallets .badgeLegend dt .badgePreview .beerIcon{width:24px;height:24px}
+#wallets .badgeLegend dt .brandGlyph{width:24px;height:24px;min-width:24px;flex:0 0 24px}
+@media(max-width:590px){
+ #nav a{min-height:45px;line-height:1.2;padding:7px 4px;font-size:10.5px}
+ .marketChain{font-size:10.5px;column-gap:5px}
+ .heroChain .brandGlyph,.marketChain .brandGlyph{width:24px;height:24px;min-width:24px;flex-basis:24px}
+ #activity .sectionHeading{display:flex;flex-wrap:wrap;gap:8px}
+ .dexTag{font-size:12px}
+ #stats .statHeading{gap:5px;font-size:12px}
+ #stats .statHeading .trendMini{width:32px;height:18px}
+ #feed .operationRow .trendMini{width:37px;height:20px}
+ #links .resourcesGrid{grid-template-columns:minmax(0,1fr)}
+ #links .resourceList>a,#links .resourceList>button{font-size:13px;padding:8px 10px;min-height:46px}
+ #wallets .badgeLegend dl{grid-template-columns:minmax(86px,auto) minmax(0,1fr);gap:8px}
+ #wallets .badgeLegend dt{font-size:11px;flex-wrap:wrap}
+ #wallets .badgeLegend dt .badgePreview{min-width:29px}
+ #views button{font-size:11px;padding:9px 3px}
+}
+@media(prefers-reduced-motion:reduce){
+ #stats .statFire,.trendMini .trendLine,.trendMini .trendArrow,
+ #rank .rankingRow.bestSellers,#rank .rankingRow.bestSellers::before{animation:none!important}
+ .trendMini .trendLine{stroke-dashoffset:0!important}
+ .trendMini .trendArrow{opacity:1!important;stroke-dashoffset:0!important}
+}
