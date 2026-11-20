@@ -942,6 +942,24 @@ function decorateBrandLinks(){
  const headerIcon=document.querySelector(".brand .brandMark");
  if(headerIcon&&!headerIcon.querySelector(".brandTile"))applyApprovedBrand(headerIcon,"ludoman");
  // +888 and author NFT stay legible; their service artwork appears in the badge guide.
+ for(const item of document.querySelectorAll("[data-brand]")){
+   if(!item.querySelector(".brandGlyph"))item.prepend(brandMarkNode(item.dataset.brand));
+ }
+ for(const item of document.querySelectorAll("#wallets .badgeLegend dt[data-badge-key]")){
+   if(item.querySelector(".projectBadge"))continue;
+   const key=item.dataset.badgeKey;
+   const badge=el("span",undefined,"projectBadge badgePreview "+key);
+   if(key==="napiwas"){
+     const beer=el("span",undefined,"beerIcon");
+     beer.setAttribute("aria-hidden","true");
+     badge.append(beer);
+   }else{
+     const icon=$("badge-icon-"+key)?.content.firstElementChild?.cloneNode(true);
+     if(icon)badge.append(icon);
+   }
+   badge.setAttribute("aria-hidden","true");
+   item.prepend(badge);
+ }
  const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};
  for(const label of document.querySelectorAll("#wallets .badgeLegend dt")){
   const kind=legendBrands[label.textContent.trim()];
@@ -1003,9 +1021,9 @@ function renderPools(){
   const grid=$("discoveredPools");
   grid.replaceChildren();
   const labels={
-    pool:"Пул", contract:"Контракт пула", liquidity:"Ликвидность", checked:"Проверено по GeckoTerminal"
+    pool:"Пул", analytics:"Аналитика", contract:"Контракт", liquidity:"Ликвидность", checked:"Проверено по GeckoTerminal"
   };
-  const english={pool:"Pool", contract:"Pool contract", liquidity:"Liquidity", checked:"Checked via GeckoTerminal"};
+  const english={pool:"Pool", analytics:"Analytics", contract:"Contract", liquidity:"Liquidity", checked:"Checked via GeckoTerminal"};
   const words=lang==="ru"?labels:english;
   $("poolChecked").textContent=section?.asOf?words.checked+" · "+stamp(section.asOf):"";
   const indexed=new Map((section?.rows||[]).map(pool=>[rawLookupAddress(pool.address),pool]));
@@ -1029,7 +1047,9 @@ function renderPools(){
     const card=el("article",undefined,"poolCard");
     card.append(el("h3","LUDOMAN / "+pool.symbol),el("p",pool.dex));
     const actions=el("div",undefined,"poolActions");
-    actions.append(link("https://www.geckoterminal.com/ton/pools/"+encodeURIComponent(pool.address),words.pool),
+    const dex=/dedust/i.test(pool.dex)?"dedust":/ston/i.test(pool.dex)?"ston":null;
+    if(dex)actions.append(link("https://"+(dex==="dedust"?"dedust.io":"app.ston.fi")+"/pools/"+encodeURIComponent(pool.address),words.pool));
+    actions.append(link("https://www.geckoterminal.com/ton/pools/"+encodeURIComponent(pool.address),words.analytics),
       link("https://gram.org/address/"+encodeURIComponent(pool.address),words.contract));
     card.append(actions);
     if(pool.liquidityUsd!=null)card.append(el("p",words.liquidity+" · $"+format(pool.liquidityUsd,2),"poolLiquidity"));
