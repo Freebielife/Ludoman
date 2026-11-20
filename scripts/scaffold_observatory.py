@@ -866,7 +866,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
         text = (output / relative).read_text()
         if any(x.lower() in text.lower() for x in banned):
             raise ProjectError("Foreign-project reference survived: " + relative)
-    if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp"}:
+    if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp", "project-background.webp"}:
         raise ProjectError("Foreign token artwork survived the build")
     return output
 
