@@ -15,6 +15,7 @@ import re
 import shutil
 from pathlib import Path
 from urllib.parse import quote
+from scripts.build_common_flags import build_common_atlas
 
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
@@ -824,6 +825,10 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
     manifest["assets"] = [x for x in manifest["assets"] if x["file"] in COMMON_SVGS]
     manifest["pending"] = []
     (pack / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+    # Physically redact other tokens from the shared TONecoFlags sprite.
+    shared = build_common_atlas(ROOT / "assets/icon-pack/approved-brand-atlas.json")
+    (pack / "approved-brand-atlas.json").write_text(
+        json.dumps(shared, ensure_ascii=False, separators=(",", ":")))
     (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text(), cfg))
     (output / "observatory.py").write_text(common_observatory(
         (ROOT / "observatory.py").read_text(), cfg))
