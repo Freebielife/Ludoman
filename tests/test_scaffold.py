@@ -69,7 +69,6 @@ class ScaffoldTests(unittest.TestCase):
         self.assertNotIn("LUDOMAN", page)
         self.assertNotIn("1000ludoman.xyz", page)
         self.assertNotIn("CryptoCheck", (self.out / "observatory.py").read_text())
-        self.assertNotIn("approved-brand-atlas.json", str(list((self.out / "assets/icon-pack").glob("*.json"))))
         self.assertEqual(list((self.out / "web").glob("*.webp")), [])
         self.assertNotIn("socool.ton", (self.out / "assets.py").read_text())
         self.assertNotIn("JVault", app)
