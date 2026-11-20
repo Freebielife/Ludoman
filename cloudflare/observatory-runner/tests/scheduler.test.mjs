@@ -19,6 +19,18 @@ test("Ludoman fires at :00 and :30 UTC, with future projects offset", () => {
   assert.deepEqual(selectDueProjects("2026-11-16T12:40:00Z", registry).map(p => p.id), ["new-token"]);
 });
 
+test("TAC is staged at :10/:40 but not dispatched before token authorization", () => {
+  const tac=projects.find(p=>p.id==="tac");
+  assert.ok(tac);
+  assert.equal(tac.repo,"Freebielife-TAC-Observatory");
+  assert.equal(tac.workflow,"refresh.yml");
+  assert.equal(tac.everyMinutes,30);
+  assert.equal(tac.phaseMinutes,10);
+  assert.equal(tac.enabled,false);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects), []);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman"]);
+});
+
 test("disabled project cannot be dispatched", () => {
   const disabled = setup({ enabled: false, phaseMinutes: 0 });
   assert.deepEqual(selectDueProjects(monday, [disabled]), []);
