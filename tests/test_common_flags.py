@@ -4,12 +4,16 @@ import io
 import unittest
 from pathlib import Path
 
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 from scripts.build_common_flags import COMMON_KEYS, build_common_atlas
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@unittest.skipIf(Image is None, "Pillow is a build-only dependency; full QA installs it")
 class CommonFlagsTest(unittest.TestCase):
     def test_shared_flags_have_no_foreign_token_art(self):
         sprite = build_common_atlas(ROOT / "assets/icon-pack/approved-brand-atlas.json")
