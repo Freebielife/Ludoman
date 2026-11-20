@@ -371,6 +371,12 @@ def app_js(source, cfg):
                 "badgeArni", "badgeNapiwas", "badgeSub",
                 "blueCollection", "supplyFrozenHint", "supplyStakedHint"):
         source = re.sub(r'("'+key+r'"\s*:\s*)"[^"]*"', r'\1""', source)
+    for key in ("badgeJoystick", "badgePhoenix"):
+        source, count = re.subn(
+            r'(?m)^[ \t]*"' + key + r'"\s*:\s*"[^"]*",[ \t]*\n',
+            '', source)
+        if count != 2:
+            raise ProjectError("Could not isolate bilingual project badge translation " + key)
     source = source.replace('kito:"K",', '').replace('usda:"U",', '').replace('rton:"R",', '')
     source, n = re.subn(r'const badgeFilterDefs=\[.*?\];',
                         'const badgeFilterDefs=[["og","OG"],["fragmentNumber","+888"],'
