@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Install build-only sprite dependencies
+        run: python3 -m pip install --quiet Pillow
       - name: Unit checks
         run: |
           python3 -m unittest discover -s tests -p 'test_*.py'

@@ -14,7 +14,8 @@ import json
 import re
 import shutil
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
+from scripts.build_common_flags import build_common_atlas
 
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
@@ -23,6 +24,7 @@ CORE = ("assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",
+        "scripts/refresh_observatory.py",
         "tests/market-cap.test.cjs", "tests/snapshot-loader.test.cjs")
 COMMON_SVGS = ("brands/telegram.svg", "brands/ton.svg", "brands/usdt.svg",
                "brands/github.svg", "brands/x.svg",
@@ -124,7 +126,7 @@ def read_config(path):
     if cfg.get("quote", "TON") != "TON":
         raise ProjectError("Only native TON quote is supported by this collector")
     links = cfg.get("links", {})
-    if not isinstance(links, dict) or set(links) - {"website", "telegram", "x"}:
+    if not isinstance(links, dict) or set(links) - {"website", "telegram", "x", "staking"}:
         raise ProjectError("Unsupported link keys")
     for key, url in links.items():
         if not isinstance(url, str) or not re.fullmatch(r"https://[A-Za-z0-9.-]+(?::[0-9]+)?(?:/[^ \r\n\t<>]*)?", url):
@@ -292,7 +294,13 @@ RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
     head += '''def role(wallet, account):
     if wallet in KNOWN_SERVICES:
         return KNOWN_SERVICES[wallet]
-    return next((ROLES[i] for i in account.get("interfaces", []) if i in ROLES), None)
+    known = next((ROLES[i] for i in account.get("interfaces", []) if i in ROLES), None)
+    if known:
+        return known
+    # Generic contracts are not automatically a named service or human wallet.
+    if account.get("status") == "active" and account.get("is_wallet") is False:
+        return "unclassified_contract"
+    return None
 '''
     return schema(generic(head + "\n\n".join(methods), cfg))
 
@@ -385,7 +393,7 @@ def page_html(source, cfg):
             '<a href="https://gram.org/address/' + address +
             '"><span lang="ru">Контракт</span><span lang="en">Contract</span></a>')
         fee = " · " + html.escape(str(pool["fee"])) + " fee" if pool.get("fee") else ""
-        cards.append('<article class="poolCard"><h3>' + symbol +
+        cards.append('<article class="poolCard" data-quote-address="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"><h3>' + symbol +
                      ' / TON</h3><p>' + dexname + fee +
                      '</p><div class="poolActions">' + actions + '</div></article>')
     pool_html = ('<section id="pools" class="panel resources" aria-labelledby="pools-title">'
@@ -409,12 +417,22 @@ def page_html(source, cfg):
               '<small id="frozenUsd">—</small></div>'
               '<div><span data-t="supplyStaked"></span><strong id="stakingTotal">—</strong>'
               '<small id="stakingUsd">—</small></div></div></section>')
+    if "staking" in cfg.get("links", {}):
+        staking_url = html.escape(cfg["links"]["staking"], quote=True)
+        staking_action = (
+            '<div class="resourceList supplyExternal">'
+            '<a href="' + staking_url + '" data-brand="project" target="_blank" '
+            'rel="noopener noreferrer">'
+            '<span lang="ru">Официальная страница стейкинга</span>'
+            '<span lang="en">Official staking page</span></a></div>'
+        )
+        supply = supply.replace("</section>", staking_action + "</section>")
     source, count = re.subn(r'<section id="supply" .*?</section>',
                             lambda _: supply, source, count=1, flags=re.S)
     if count != 1:
         raise ProjectError("Cannot isolate project staking/lock integrations")
     resources = []
-    for key, label in (("website", cfg["name"]), ("telegram", "Telegram"), ("x", "X")):
+    for key, label in (("website", cfg["name"]), ("telegram", "Telegram"), ("x", "X"), ("staking", "Staking")):
         if key in cfg.get("links", {}):
             resources.append('<a href="' + html.escape(cfg["links"][key], quote=True) +
                              '" target="_blank" rel="noopener noreferrer">' +
@@ -552,6 +570,48 @@ def app_js(source, cfg):
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    # Project-supplied links such as the native-chain staking frontend may be
+    # displayed without inventing balances, validators or yield percentages.
+    source = replace(source, 'const brand=markFromLink(anchor);',
+                     'const brand=anchor.dataset.brand||markFromLink(anchor);',
+                     "allow explicit branding of verified service links")
+    source = replace(source,
+                     '".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a"',
+                     '".introLinks a,.resourceList a,#pools .poolActions a,#pools .poolSources a,.supplyGrid a"',
+                     "preserve explicit resource icons")
+    # A site's official website must receive its own token emblem, even when
+    # the domain has no word "project" in it (for example tac.build).
+    site = cfg.get("links", {}).get("website")
+    host = urlsplit(site).hostname if site else ""
+    source = replace(source, 'if(host.includes("project"))return"project";',
+                     ('if(host===' + json.dumps(host) + ')return"project";') if host
+                     else '/* No configured project website */', "project website emblem")
+    # Differentiate unclassified smart contracts from proven service addresses.
+    source = replace(source, 'identity.role;',
+                     '(identity.role==="unclassified_contract" ? (lang==="ru" ? "Смарт-контракт · назначение неизвестно" : "Smart contract · purpose unverified") : identity.role);',
+                     "contract classification disclosure")
+    source = replace(source, 'return typeof role==="string"&&role.trim()?role.trim():null;',
+                     'return typeof role==="string"&&role.trim()?role.trim():null;',
+                     "service role marker")
+    source = source.replace('"services": "⚙️ Сервисы"',
+                            '"services": "⚙️ Сервисы и контракты"')
+    source = source.replace('"services": "⚙️ Services"',
+                            '"services": "⚙️ Services & contracts"')
+    source = replace(source, '$("poolChecked").textContent=section?.asOf?words.checked+" · "+stamp(section.asOf):"";',
+                     '$("poolChecked").textContent="";',
+                     "remove dated GeckoTerminal caption")
+    # Store quote contract next to each discovered pool; a spoofed ticker alone
+    # must never trigger a trusted TON or USDT token flag.
+    source = replace(source, 'const card=el("article",undefined,"poolCard");',
+                     'const card=el("article",undefined,"poolCard");card.dataset.quoteAddress=pool.token;',
+                     "pool quote master")
+    source = replace(source,
+                     'const tokenKind=brandLabels[quote]!==undefined?quote:(quote==="ton"?"ton":null);',
+                     'const raw=rawLookupAddress(card.dataset.quoteAddress);'
+                     'const native=rawLookupAddress("EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c");'
+                     'const tether=rawLookupAddress("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");'
+                     'const tokenKind=raw===native?"ton":raw===tether?"usdt":null;',
+                     "only verified quote contract logos")
     # Browser storage is scoped per token even when multiple sites share an origin.
     storage_prefix = ("observatory-" + cfg["slug"] + "-" +
                       raw_address(cfg["master"]).split(":")[1][:12])
@@ -727,7 +787,7 @@ jobs:
       - name: Collect on-chain data
         id: collect
         continue-on-error: true
-        run: python3 collect.py
+        run: python3 -m scripts.refresh_observatory
       - name: Build and publish verified snapshot
         run: |
           python3 build.py
@@ -777,6 +837,19 @@ def scaffold(config_path, output):
             value += ('\nhtml[lang="ru"] #supply [lang="en"], '
                       'html[lang="en"] #supply [lang="ru"]{display:none!important}\n')
             value += '''
+/* Token symbol is private to the newly generated project, not the common flags. */
+.brandGlyph.brand-project{background:var(--project-art) center/contain no-repeat!important;
+ border-color:transparent!important;box-shadow:none!important;
+ color:transparent!important;font-size:0!important;padding:0!important}
+.supplyExternal{display:flex;flex-wrap:wrap;margin-top:14px;gap:9px}
+.supplyExternal a{display:inline-flex;align-items:center;gap:8px;
+ text-decoration:none;color:#eff8ff;border:1px solid #567296;
+ background:#132447;border-radius:10px;padding:9px 12px;min-height:42px}
+.supplyExternal a:hover{border-color:#81bdff}
+html[lang="en"] .supplyExternal [lang="ru"],
+html[lang="ru"] .supplyExternal [lang="en"]{display:none!important}
+'''
+            value += '''
 /* Project-specific badges (both static WebP and animated WebP/GIF). */
 #wallets .badgeLegend dt[data-project-badge] {display:flex;gap:8px;align-items:center}
 #wallets .badgeLegend dt[data-project-badge] .customBadge {flex:0 0 31px}
@@ -824,6 +897,10 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
     manifest["assets"] = [x for x in manifest["assets"] if x["file"] in COMMON_SVGS]
     manifest["pending"] = []
     (pack / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+    # Physically redact other tokens from the shared TONecoFlags sprite.
+    shared = build_common_atlas(ROOT / "assets/icon-pack/approved-brand-atlas.json")
+    (pack / "approved-brand-atlas.json").write_text(
+        json.dumps(shared, ensure_ascii=False, separators=(",", ":")))
     (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text(), cfg))
     (output / "observatory.py").write_text(common_observatory(
         (ROOT / "observatory.py").read_text(), cfg))
@@ -858,7 +935,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
     (output / "README.md").write_text(
         "# " + cfg["name"] + " Observatory\n\n"
         "Generated from the reusable TON Observatory framework.\n\n"
-        "Run python3 collect.py; python3 build.py; python3 verify.py.\n"
+        "Run python3 -m scripts.refresh_observatory; python3 build.py; python3 verify.py.\n"
         "Publish index.html in TON Sites only after independent on-chain verification.\n"
         "The initial snapshot is EMPTY: no market data is claimed.\n"
         "Only native TON swap pairs supported. Locks, staking and custom project NFT "

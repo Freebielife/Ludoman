@@ -1,0 +1,83 @@
+"""Token-independent incremental TON Observatory data refresh.
+
+Reuse the same code for all generated tokens. Never fabricate absent burns,
+NFT ownership, vesting or native-chain staking. Each completed section is
+committed atomically before the next network operation so a later timeout does
+not silently delete valid prior data.
+"""
+from __future__ import annotations
+
+import json
+import os
+import time
+from pathlib import Path
+
+import assets
+import observatory
+import pools
+import trades
+
+ROOT = Path(__file__).resolve().parents[1]
+SNAPSHOT = ROOT / "data/snapshot.json"
+UNINDEXED = {"burns", "zeroBurns", "domains", "fragmentNumbers"}
+
+
+def save(snapshot: dict) -> None:
+    SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
+    temp = SNAPSHOT.with_suffix(".tmp")
+    temp.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":"),
+                               allow_nan=False), encoding="utf-8")
+    os.replace(temp, SNAPSHOT)
+
+
+def refresh() -> dict:
+    now = int(time.time())
+    snap = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
+    if snap.get("schema") != 1 or snap.get("token") != assets.MASTER:
+        raise ValueError("Generated token identity or snapshot schema mismatch")
+    errors = set(snap.get("errors", ()))
+    errors.update(key for key in UNINDEXED if key not in snap)
+
+    def stage(key, read, *, interval=0):
+        prior = snap.get(key, {})
+        if prior and now - int(prior.get("asOf", 0)) < interval:
+            return
+        try:
+            result = read(prior)
+            if not isinstance(result, dict) or int(result.get("asOf", 0)) <= 0:
+                raise ValueError(key + " response must have a verified asOf")
+            if key == "holders" and not result.get("holders"):
+                raise ValueError("Empty holder snapshot")
+            if key == "identity" and not any(
+                rec.get("checked") for rec in result.get("byWallet", {}).values()):
+                raise ValueError("No verified account identities yet")
+            snap[key] = result
+            errors.discard(key)
+            snap["updated"] = int(time.time())
+            snap["errors"] = sorted(errors)
+            save(snap)
+            print(key, "SAVED", flush=True)
+        except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+            errors.add(key)
+            snap["errors"] = sorted(errors)
+            print(key, "UNAVAILABLE", type(exc).__name__, str(exc)[:200], flush=True)
+
+    stage("holders", lambda _: {**assets.holders(), "asOf": now})
+    stage("trades", lambda previous: trades.collect(previous, now - 7*86400,
+                                                      now, max_pages=35))
+    stage("rates", lambda _: {"asOf": now, "rows": trades.rates()},
+          interval=6*3600)
+    stage("pools", lambda _: pools.collect(now), interval=24*3600)
+    # Deep account metadata is verified slowly across many refreshes; a large
+    # balance alone must never be used to assert a named service.
+    stage("identity", lambda _: observatory.identity(snap, now, budget=6, pace=0.2))
+    snap["errors"] = sorted(errors)
+    if any(snap.get(key) for key in ("holders", "trades", "rates", "pools")):
+        snap["updated"] = int(time.time())
+    save(snap)
+    print("Refresh finished; incomplete:", snap["errors"], flush=True)
+    return snap
+
+
+if __name__ == "__main__":
+    refresh()
