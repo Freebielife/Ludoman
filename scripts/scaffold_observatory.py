@@ -559,6 +559,14 @@ def app_js(source, cfg):
                      json.dumps(storage_prefix + "-lang"), "per-token language storage")
     source = replace(source, '"project-currency"',
                      json.dumps(storage_prefix + "-currency"), "per-token currency storage")
+    source = replace(
+        source, 'item.append(check,el("span",label));list.append(item);',
+        'item.append(check);'
+        'const icon=document.querySelector('
+        '"#wallets .badgeLegend dt[data-project-badge=\'+key+\'] img");'
+        'if(icon)item.append(icon.cloneNode(true));'
+        'item.append(el("span",label));list.append(item);',
+        "show custom badge artwork inside operation filter")
     precision = str(cfg["decimals"])
     source = replace(source, r'!/^\d{0,9}$/.test(fraction)',
                      '!/^\\d{0,' + precision + '}$/.test(fraction)',
@@ -780,6 +788,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
   color:#f0f8ff;background:linear-gradient(120deg,#172b40,#23435a);
   border:1px solid var(--badge-accent,#76bfff);border-radius:9px;
   padding:3px 7px;min-height:25px}
+#badgeFilterList .badgeFilterItem img {width:22px;height:22px;object-fit:contain;flex:0 0 22px}
 .projectBadge.customBadge img {width:23px;height:23px;object-fit:contain;
   animation:customBadgeFloat 2.8s ease-in-out infinite alternate}
 .projectBadge.customBadge .customBadgeSymbol {font-size:12px;font-weight:850;
