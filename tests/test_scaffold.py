@@ -4,6 +4,7 @@ These use synthetic CRC-correct addresses: no real token or DEX is claimed.
 """
 import base64
 import binascii
+import importlib.util
 import json
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from pathlib import Path
 from scripts.scaffold_observatory import ProjectError, read_config, scaffold, raw_address
 
 ROOT = Path(__file__).resolve().parents[1]
+HAS_PILLOW = importlib.util.find_spec('PIL') is not None
 
 
 def friendly(seed):
@@ -53,6 +55,7 @@ class ScaffoldTests(unittest.TestCase):
         with self.assertRaises(ProjectError):
             read_config(self.config_path)
 
+    @unittest.skipUnless(HAS_PILLOW, "Pillow is installed only for scaffold QA")
     def test_clean_independent_export_builds_offline(self):
         self.save()
         scaffold(self.config_path, self.out)
