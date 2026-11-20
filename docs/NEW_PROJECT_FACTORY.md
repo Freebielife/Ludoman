@@ -189,3 +189,29 @@ and never enable it in other projects automatically.
 
 The factory is versioned inside Ludoman now; extracting a separately versioned
 engine repository is possible later without disrupting the production site.
+
+## Shared exchange and custody registry
+
+All newly generated projects include `service_registry.py`, the attributed
+`common-services.json` bootstrap and its regression tests. No per-token exchange
+list is needed. Each refresh matches exact owner addresses across all tracked
+holders, trades and burns, independently of the slow account-metadata queue.
+Named custodians move to the existing Services & contracts view.
+
+The registry reads Tonkeeper's curated `ton-assets/accounts.json` once per 24 hours,
+selecting explicit supported exchange/custodian name families. It does not use
+wallet names, token balances or transfer counterparties to infer ownership.
+Labels are attribution by Tonkeeper, not a cryptographic proof of ownership or
+a guarantee of complete exchange coverage. Unknown addresses remain unidentified.
+Source: https://github.com/tonkeeper/ton-assets/blob/main/accounts.json
+
+The last successful registry and its original `asOf`, canonical JSON SHA-256 and
+source URL are saved in `snapshot.serviceRegistry`. Source failures preserve the
+last good registry and report a refresh error; they never advance its timestamp.
+A bundled registry works offline on the first run. Successful source removals
+also remove the corresponding cached service attribution. Explicit project
+`services` overrides take priority. Matching identity records retain `roleSource`
+and `roleChecked`; the service gear links to the attribution source.
+
+Both the production Ludoman collector and generated incremental collector update
+the registry. KITO is independent and is not modified by this integration.

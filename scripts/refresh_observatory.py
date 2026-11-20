@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 import assets
+import service_registry
 import observatory
 import pools
 import trades
@@ -63,6 +64,11 @@ def refresh() -> dict:
             print(key, "UNAVAILABLE", type(exc).__name__, str(exc)[:200], flush=True)
 
     stage("holders", lambda _: {**assets.holders(), "asOf": now})
+    if service_registry.update(snap, now, observatory.KNOWN_SERVICES):
+        errors.add("serviceRegistry")
+    else:
+        errors.discard("serviceRegistry")
+    save(snap)
     stage("trades", lambda previous: trades.collect(previous, now - 7*86400,
                                                       now, max_pages=35))
     stage("rates", lambda _: {"asOf": now, "rows": trades.rates()},
