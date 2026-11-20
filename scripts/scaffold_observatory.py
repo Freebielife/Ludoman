@@ -61,6 +61,30 @@ def require(data, key, typ=str):
     return value
 
 
+def local_image(base, value, label, suffixes, max_bytes):
+    """Use verified local raster files without external downloads or SVG scripts."""
+    if not isinstance(value, str) or not value or Path(value).is_absolute():
+        raise ProjectError(label + " must be a relative local image path")
+    requested = Path(value)
+    if ".." in requested.parts or requested.suffix.lower() not in suffixes:
+        raise ProjectError(label + " has an unsupported path or image format")
+    image = (base / requested).resolve()
+    if not image.is_relative_to(base.resolve()) or not image.is_file():
+        raise ProjectError(label + " must reference an existing local image")
+    if not 0 < image.stat().st_size <= max_bytes:
+        raise ProjectError(label + " is empty or exceeds its size limit")
+    header = image.read_bytes()[:12]
+    if requested.suffix.lower() == ".webp":
+        valid = header.startswith(b"RIFF") and header[8:12] == b"WEBP"
+    elif requested.suffix.lower() == ".gif":
+        valid = header.startswith((b"GIF87a", b"GIF89a"))
+    else:
+        valid = False
+    if not valid:
+        raise ProjectError(label + " file content does not match its type")
+    return image
+
+
 def read_config(path):
     cfg = json.loads(path.read_text())
     slug, symbol, name = (require(cfg, k) for k in ("slug", "symbol", "name"))
@@ -111,10 +135,57 @@ def read_config(path):
     cfg["_services"] = {raw_address(address): require({"name": title}, "name")
                         for address, title in services.items()}
     if cfg.get("logo_file"):
-        logo = (path.parent / cfg["logo_file"]).resolve()
-        if not logo.is_file() or logo.suffix.lower() != ".webp" or logo.stat().st_size > 150000:
-            raise ProjectError("logo_file must be a local WebP smaller than 150 KB")
-        cfg["_logo"] = logo
+        cfg["_logo"] = local_image(path.parent, cfg["logo_file"], "logo_file", {".webp"}, 150000)
+    if cfg.get("background_file"):
+        cfg["_background"] = local_image(
+            path.parent, cfg["background_file"], "background_file", {".webp"}, 750000)
+    badges = cfg.get("badges", [])
+    if not isinstance(badges, list) or len(badges) > 12:
+        raise ProjectError("badges must be an array of up to twelve custom badges")
+    reserved = {"og", "digits", "fragmentNumber", "burner", "staking"}
+    badge_icons, seen = {}, set()
+    for badge in badges:
+        if not isinstance(badge, dict):
+            raise ProjectError("Each badge must be an object")
+        key = require(badge, "id")
+        if not re.fullmatch(r"[a-z][a-z0-9_]{1,23}", key) or key in seen or key in reserved:
+            raise ProjectError("Badge ID must be unique and distinct from built-ins")
+        seen.add(key)
+        for label in ("label", "description_ru", "description_en"):
+            val = require(badge, label)
+            if not 1 <= len(val) <= (40 if label == "label" else 250):
+                raise ProjectError("Invalid badge text length: " + label)
+        color = badge.get("color")
+        if color is not None and (not isinstance(color, str) or
+                                  not re.fullmatch(r"#[0-9a-fA-F]{6}", color)):
+            raise ProjectError("Badge color must be an RGB hex color")
+        if "url" in badge:
+            url = badge["url"]
+            if not isinstance(url, str) or not re.fullmatch(
+                r"https://[A-Za-z0-9.-]+(?::[0-9]+)?(?:/[^ \r\n\t<>]*)?", url):
+                raise ProjectError("Badge URL must use HTTPS")
+        if badge.get("icon_file"):
+            badge_icons[key] = local_image(
+                path.parent, badge["icon_file"], "badge icon " + key,
+                {".webp", ".gif"}, 150000)
+        if badge.get("match", "any") not in ("any", "all"):
+            raise ProjectError("Badge match supports only 'any' or 'all'")
+        criteria = require(badge, "criteria", list)
+        if not 1 <= len(criteria) <= 3:
+            raise ProjectError("Each badge needs 1–3 verifiable on-chain criteria")
+        for rule in criteria:
+            if not isinstance(rule, dict):
+                raise ProjectError("Badge criterion must be an object")
+            if rule.get("type") == "jetton_min":
+                raw_address(require(rule, "master"))
+                amount = rule.get("min_balance")
+                if type(amount) is not int or not 0 < amount <= 10**15:
+                    raise ProjectError("Jetton badge min_balance must be positive integer")
+            elif rule.get("type") == "nft_collection":
+                raw_address(require(rule, "collection"))
+            else:
+                raise ProjectError("Unsupported badge proof: use jetton_min or nft_collection")
+    cfg["_badge_icons"] = badge_icons
     return cfg
 
 
@@ -147,11 +218,17 @@ def helper(source, name):
     return "\n".join(source.splitlines()[node.lineno-1:node.end_lineno]) + "\n"
 
 
-def common_badges(source):
+def common_badges(source, cfg):
+    """Generic badge collectors with independently verifiable chain conditions."""
     methods = [helper(source, n) for n in
                ("raw_friendly", "decode_address", "fragment_number_owner",
-                "refresh_fragment_numbers")]
-    return ('''"""Reusable TON/DNS/Fragment badges. No project-specific NFT sources."""
+                "refresh_fragment_numbers", "holders", "nft_owners")]
+    rules = {
+        entry["id"]: {"match": entry.get("match", "any"),
+                      "criteria": entry["criteria"]}
+        for entry in cfg.get("badges", [])
+    }
+    head = '''"""TON/DNS/Fragment and project-configured badge proofs. No foreign NFTs."""
 import base64
 import binascii
 import re
@@ -161,11 +238,38 @@ from domains import pages, owned, check_queue
 
 ZERO = "0:" + "0" * 64
 FRAGMENT_NUMBERS = "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2"
-
+'''
+    head += "\nBADGE_RULES = " + repr(rules) + "\n"
+    head += '''
 def refresh(previous, now):
-    return {"sources": {}, "failed": []}
-''' + "\n\n".join(methods))
-
+    # Recheck expensive on-chain holder/NFT sources at most every six hours.
+    # A failing source does not grant an unconfirmed badge.
+    old = previous.get("sources", {})
+    sources = {key: old[key] for key in BADGE_RULES if key in old}
+    failed = []
+    for key, spec in BADGE_RULES.items():
+        last = sources.get(key, {})
+        if last.get("asOf", 0) > now - 6 * 3600:
+            continue
+        try:
+            sets = []
+            for criterion in spec["criteria"]:
+                if criterion["type"] == "jetton_min":
+                    wallets = holders(criterion["master"], True, criterion["min_balance"])
+                elif criterion["type"] == "nft_collection":
+                    wallets = nft_owners(criterion["collection"], False)
+                else:
+                    raise ValueError("Unrecognized badge proof")
+                sets.append(set(wallets))
+            qualifying = (set.intersection(*sets) if spec["match"] == "all"
+                          else set.union(*sets))
+            sources[key] = {"asOf": now, "wallets": {wallet: True for wallet in qualifying}}
+        except (OSError, ValueError, KeyError, RuntimeError) as error:
+            failed.append(key)
+            print("Badge source failed:", key, type(error).__name__, flush=True)
+    return {"sources": sources, "failed": failed}
+'''
+    return head + "\n\n".join(methods)
 
 def common_observatory(source, cfg):
     methods = [helper(source, n) for n in
@@ -193,6 +297,12 @@ RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
     return schema(generic(head + "\n\n".join(methods), cfg))
 
 
+def image_uri(path):
+    suffix = path.suffix.lower()
+    mime = "image/gif" if suffix == ".gif" else "image/webp"
+    return "data:" + mime + ";base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
 def artwork(cfg):
     name = html.escape(cfg["symbol"][:3])
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
@@ -207,6 +317,15 @@ def artwork(cfg):
 
 def page_html(source, cfg):
     symbol = html.escape(cfg["symbol"])
+    telegram_button = (
+        '<a href="' + html.escape(cfg["links"]["telegram"], quote=True) +
+        '" target="_blank" rel="noopener noreferrer">Telegram</a>'
+        if "telegram" in cfg.get("links", {}) else ""
+    )
+    source = replace(
+        source,
+        '<a href="https://t.me/the1000project" target="_blank" rel="noopener noreferrer">Telegram</a>',
+        telegram_button, "remove Ludoman Telegram link from new hero")
     first = next(p for p in cfg["pools"] if p["address"] == cfg["primary_pool"])
     venue, venue_logo, _ = DEXES[first["dex"]]
     venues = list(dict.fromkeys(p["dex"] for p in cfg["pools"]))
@@ -225,12 +344,27 @@ def page_html(source, cfg):
                             source, count=1)
     if count != 1:
         raise ProjectError("Missing operation-DEX heading")
+    custom_guide = ""
+    for badge in cfg.get("badges", []):
+        badge_id = badge["id"]
+        graphic = cfg["_badge_icons"].get(badge_id)
+        art = ('<img src="' + image_uri(graphic) + '" width="26" height="26" alt="">'
+               if graphic else '<span class="customBadgeSymbol" aria-hidden="true">' +
+               html.escape(badge["label"][:2]) + '</span>')
+        custom_guide += (
+            '<dt data-project-badge="' + badge_id + '"><span class="projectBadge badgePreview customBadge">' +
+            art + '</span>' + html.escape(badge["label"]) + '</dt>'
+            '<dd class="customBadgeDescription"><span lang="ru">' +
+            html.escape(badge["description_ru"]) + '</span><span lang="en">' +
+            html.escape(badge["description_en"]) + '</span></dd>'
+        )
     guide = ('<details class="badgeLegend"><summary><span aria-hidden="true">ⓘ </span>'
              '<span data-t="badgeLegend"></span></summary><dl>'
              '<dt>OG</dt><dd data-t="badgeOg"></dd>'
              '<dt>+888</dt><dd data-t="badgeFragment"></dd>'
              '<dt>0000.ton</dt><dd data-t="badgeDigits"></dd>'
-             '<dt>🔥</dt><dd data-t="badgeBurn"></dd></dl></details>')
+             '<dt>🔥</dt><dd data-t="badgeBurn"></dd>' +
+             custom_guide + '</dl></details>')
     source, count = re.subn(r'<details class="badgeLegend">.*?</details>',
                             lambda _: guide, source, count=1, flags=re.S)
     if count != 1:
@@ -346,6 +480,21 @@ def app_js(source, cfg):
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
   appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
+  for(const definition of customBadgeDefs){
+    const proof=snapshot.badges?.sources?.[definition.id];
+    if(!proof || proof.asOf<Date.now()/1000-24*3600 || !proof.wallets?.[wallet])continue;
+    const badge=definition.url?link(definition.url,""):el("span");
+    badge.className="projectBadge customBadge";
+    badge.style.setProperty("--badge-accent",definition.color||"#76bfff");
+    badge.title=(lang==="ru"?definition.description_ru:definition.description_en);
+    badge.setAttribute("aria-label",definition.label+" · "+badge.title);
+    const image=document.querySelector(
+      '#wallets .badgeLegend dt[data-project-badge="'+definition.id+'"] img');
+    if(image)badge.append(image.cloneNode(true));
+    else badge.append(el("span",definition.label.slice(0,2),"customBadgeSymbol"));
+    badge.append(el("span",definition.label,"badgeLabel"));
+    badges.append(badge);
+  }
   if((burnTotals?.get(wallet)||0n)>=1000n*10n**9n){
     const badge=el("span","🔥","projectBadge burner");
     badge.title=t("burnBadge");
@@ -362,6 +511,16 @@ def app_js(source, cfg):
         raise ProjectError("Cannot replace legacy project-specific badge engine")
     source = source.replace('const authorCollection="";', '')
     source = source.replace('const projectBadgeDefs=[];', '')
+    badge_defs = [
+        {key: badge[key] for key in
+         ("id", "label", "description_ru", "description_en", "url", "color")
+         if key in badge}
+        for badge in cfg.get("badges", [])
+    ]
+    badge_json = json.dumps(badge_defs, ensure_ascii=False, separators=(",", ":")).replace("<", r"\u003c")
+    source = replace(source, 'const fragmentCollection=',
+                     'const customBadgeDefs=' + badge_json + ';\nconst fragmentCollection=',
+                     "custom badge display configuration")
     source = replace(source,
                      'const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};',
                      'const legendBrands={"+888":"fragment"};',
@@ -381,15 +540,32 @@ def app_js(source, cfg):
         if count != 2:
             raise ProjectError("Could not isolate bilingual project badge translation " + key)
     source = source.replace('kito:"K",', '').replace('usda:"U",', '').replace('rton:"R",', '')
+    filters = [["og", "OG"], ["fragmentNumber", "+888"],
+               ["digits", "0000.ton"], ["burner", "🔥 Burn"]]
+    filters += [[badge["id"], badge["label"]] for badge in cfg.get("badges", [])]
+    filter_js = json.dumps(filters, ensure_ascii=False, separators=(",", ":")).replace("<", r"\u003c")
     source, n = re.subn(r'const badgeFilterDefs=\[.*?\];',
-                        'const badgeFilterDefs=[["og","OG"],["fragmentNumber","+888"],'
-                        '["digits","0000.ton"],["burner","🔥 Burn"]];',
+                        lambda _: 'const badgeFilterDefs=' + filter_js + ';',
                         source, count=1, flags=re.S)
     if n != 1:
         raise ProjectError("Cannot remove project badge filters")
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    # Browser storage is scoped per token even when multiple sites share an origin.
+    storage_prefix = ("observatory-" + cfg["slug"] + "-" +
+                      raw_address(cfg["master"]).split(":")[1][:12])
+    source = replace(source, '"project-lang"',
+                     json.dumps(storage_prefix + "-lang"), "per-token language storage")
+    source = replace(source, '"project-currency"',
+                     json.dumps(storage_prefix + "-currency"), "per-token currency storage")
+    source = replace(
+        source, 'item.append(check,el("span",label));list.append(item);',
+        'item.append(check);'
+        "const icon=document.querySelector('#wallets .badgeLegend dt[data-project-badge=\"'+key+'\"] img');"
+        'if(icon)item.append(icon.cloneNode(true));'
+        'item.append(el("span",label));list.append(item);',
+        "show custom badge artwork inside operation filter")
     precision = str(cfg["decimals"])
     source = replace(source, r'!/^\d{0,9}$/.test(fraction)',
                      '!/^\\d{0,' + precision + '}$/.test(fraction)',
@@ -503,6 +679,9 @@ background = "data:image/svg+xml;base64," + base64.b64encode(
     b'<rect width="120" height="120" fill="#090e18"/>'
     b'<path d="M0 0L120 120M120 0L0 120" stroke="#25415a" stroke-opacity=".3"/>'
     b'</svg>').decode("ascii")
+if (WEB / "project-background.webp").exists():
+    background = "data:image/webp;base64," + base64.b64encode(
+        (WEB / "project-background.webp").read_bytes()).decode("ascii")
 template = template.replace("__PROJECT_ART__", art).replace("__PROJECT_BG__", background)
 snapshot = json.loads((ROOT / "data/snapshot.json").read_text())
 payload = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).replace("<", r"\\u003c")
@@ -597,6 +776,28 @@ def scaffold(config_path, output):
         if relative == "web/telegram-taste.css":
             value += ('\nhtml[lang="ru"] #supply [lang="en"], '
                       'html[lang="en"] #supply [lang="ru"]{display:none!important}\n')
+            value += '''
+/* Project-specific badges (both static WebP and animated WebP/GIF). */
+#wallets .badgeLegend dt[data-project-badge] {display:flex;gap:8px;align-items:center}
+#wallets .badgeLegend dt[data-project-badge] .customBadge {flex:0 0 31px}
+#wallets .badgeLegend dt[data-project-badge] img {width:26px;height:26px;object-fit:contain}
+html[lang="en"] .customBadgeDescription [lang="ru"] {display:none!important}
+html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
+.projectBadge.customBadge {display:inline-flex;gap:5px;align-items:center;
+  color:#f0f8ff;background:linear-gradient(120deg,#172b40,#23435a);
+  border:1px solid var(--badge-accent,#76bfff);border-radius:9px;
+  padding:3px 7px;min-height:25px}
+#badgeFilterList .badgeFilterItem img {width:22px;height:22px;object-fit:contain;flex:0 0 22px}
+.projectBadge.customBadge img {width:23px;height:23px;object-fit:contain;
+  animation:customBadgeFloat 2.8s ease-in-out infinite alternate}
+.projectBadge.customBadge .customBadgeSymbol {font-size:12px;font-weight:850;
+  color:var(--badge-accent,#76bfff);min-width:20px;text-align:center}
+@keyframes customBadgeFloat {from{transform:translateY(1px) scale(.95)}
+ to{transform:translateY(-1px) scale(1.05)}}
+@media(prefers-reduced-motion:reduce) {
+ .projectBadge.customBadge img {animation:none!important}
+}
+'''
         if relative == "pools.py":
             value = value.replace('"TON (TON)"', '"TON"')
         elif relative == "web/page.html":
@@ -623,7 +824,7 @@ def scaffold(config_path, output):
     manifest["assets"] = [x for x in manifest["assets"] if x["file"] in COMMON_SVGS]
     manifest["pending"] = []
     (pack / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
-    (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text()))
+    (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text(), cfg))
     (output / "observatory.py").write_text(common_observatory(
         (ROOT / "observatory.py").read_text(), cfg))
     python_sources(cfg, output)
@@ -634,11 +835,25 @@ def scaffold(config_path, output):
     (output / "data/snapshot.json").write_text(json.dumps({
         "schema": 1, "token": cfg["master"], "updated": 1,
         "errors": ["holders", "trades", "burns", "domains", "rates"]}))
-    (output / "project.json").write_text(json.dumps({
-        k: v for k, v in cfg.items() if not k.startswith("_")
-    }, ensure_ascii=False, indent=2))
+    exported = {k: v for k, v in cfg.items() if not k.startswith("_")}
+    if "_logo" in cfg:
+        exported["logo_file"] = "web/project-logo.webp"
+    if "_background" in cfg:
+        exported["background_file"] = "web/project-background.webp"
+    for badge in exported.get("badges", []):
+        if badge["id"] in cfg["_badge_icons"]:
+            badge["icon_file"] = ("web/badges/" + badge["id"] +
+                                  cfg["_badge_icons"][badge["id"]].suffix.lower())
+    (output / "project.json").write_text(
+        json.dumps(exported, ensure_ascii=False, indent=2))
     if cfg.get("_logo"):
         shutil.copy2(cfg["_logo"], output / "web/project-logo.webp")
+    if cfg.get("_background"):
+        shutil.copy2(cfg["_background"], output / "web/project-background.webp")
+    if cfg["_badge_icons"]:
+        (output / "web/badges").mkdir(exist_ok=True)
+        for key, original in cfg["_badge_icons"].items():
+            shutil.copy2(original, output / ("web/badges/" + key + original.suffix.lower()))
     (output / ".gitignore").write_text("build/\n__pycache__/\n*.pyc\n")
     (output / "README.md").write_text(
         "# " + cfg["name"] + " Observatory\n\n"
@@ -647,7 +862,7 @@ def scaffold(config_path, output):
         "Publish index.html in TON Sites only after independent on-chain verification.\n"
         "The initial snapshot is EMPTY: no market data is claimed.\n"
         "Only native TON swap pairs supported. Locks, staking and custom project NFT "
-        "badges must be implemented as separately verified adapters.\n"
+        "badges are configured through project.json and verified against TonAPI.\n"
         "Configure your GitHub workflow scheduler before launch.\n")
     banned = ("EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb",
               "the1000ludoman", "1000ludoman.xyz", "CryptoCheck",
@@ -659,7 +874,7 @@ def scaffold(config_path, output):
         text = (output / relative).read_text()
         if any(x.lower() in text.lower() for x in banned):
             raise ProjectError("Foreign-project reference survived: " + relative)
-    if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp"}:
+    if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp", "project-background.webp"}:
         raise ProjectError("Foreign token artwork survived the build")
     return output
 

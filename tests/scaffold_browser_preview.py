@@ -41,6 +41,19 @@ def main():
         "links": {"website": "https://example.org"},
         "services": {}
     }
+    background = OUT / "background.webp"
+    background.write_bytes(base64.b64decode(
+        "UklGRi4AAABXRUJQVlA4ICIAAABwAQCdASoEAAQAAoBCJYwCdAFAAAD+9w1pV6vMptIhvQAA"))
+    badge_icon = OUT / "badge.gif"
+    badge_icon.write_bytes(base64.b64decode(
+        "R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="))
+    cfg["background_file"] = "background.webp"
+    cfg["badges"] = [{
+        "id": "testbadge", "label": "Test Badge",
+        "description_ru": "Проверка NFT", "description_en": "Verified NFT",
+        "icon_file": "badge.gif",
+        "criteria": [{"type": "nft_collection", "collection": address(92)}],
+    }]
     conf = OUT / "example.json"
     conf.write_text(json.dumps(cfg))
     site = OUT / "site"
@@ -63,7 +76,12 @@ def main():
             assert page.locator("#pools .knownPools .poolCard").count() == 2
             assert page.locator("#stats .statHeading").count() == 4
             assert page.locator("#market .marketChain .brandGlyph").count() == 3
-            assert page.locator("#wallets .badgeLegend dt").count() == 4
+            assert page.locator("#wallets .badgeLegend dt").count() == 5
+            assert page.locator("#wallets .badgeLegend dt[data-project-badge='testbadge'] img").count() == 1
+            assert page.locator("#badgeFilterList .badgeFilterItem").count() == 5
+            assert page.locator("#badgeFilterList .badgeFilterItem img").count() == 1
+            assert page.locator(".hero .introLinks a[href^='https://t.me/']").count() == 0
+            assert page.evaluate("getComputedStyle(document.body).backgroundImage").find("image/webp") >= 0
             assert page.locator('#pools a[href^="https://dedust.io/pools/"]').count() == 1
             assert page.locator('#pools a[href^="https://app.ston.fi/pools/"]').count() == 1
             text = page.locator("body").inner_text()
@@ -79,6 +97,9 @@ def main():
             assert max(widths["doc"], widths["body"]) <= widths["viewport"] + 2, (width, widths)
             page.locator("#views button").nth(2).click()
             assert page.locator("#sellerPeriods button").count() == 0
+            page.locator("#badgeFilterToggle").click()
+            assert page.locator("#badgeFilterList .badgeFilterItem").count() == 5
+            page.locator("#badgeFilterToggle").click()
             page.locator("#en").click()
             assert page.evaluate("document.documentElement.lang") == "en"
             assert "Источники заморозки и стейкинга" not in page.locator("#supply").inner_text()
