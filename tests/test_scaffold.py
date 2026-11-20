@@ -99,6 +99,11 @@ class ScaffoldTests(unittest.TestCase):
         for foreign in ("ludoman", "kito", "gram", "usda", "rton", "web", "tonraffles"):
             self.assertNotIn(foreign, sprite["positions"])
         self.assertNotIn("mRvnukICHlife", index)
+        self.assertIn('if(host==="example.org")return"project";', index)
+        self.assertIn('data-quote-address="EQAAAAAAAA', index)
+        self.assertIn('unclassified_contract', (self.out / "observatory.py").read_text())
+        self.assertIn('poolChecked").textContent=""', index)
+        self.assertIn("OBSERVATORY_BRAND_ATLAS", index)
         self.assertIn("https://github.com/ExampleOrg/SampleToken", index)
         self.assertFalse((self.out / "web/ludoman.webp").exists())
 
