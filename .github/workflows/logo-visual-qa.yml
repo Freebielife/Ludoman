@@ -7,6 +7,8 @@ on:
       - 'web/**'
       - 'assets/icon-pack/**'
       - 'scripts/icon_pack.py'
+      - 'scripts/scaffold_observatory.py'
+      - 'docs/**'
       - 'tests/**'
       - '.github/workflows/logo-visual-qa.yml'
   workflow_dispatch:
@@ -34,7 +36,9 @@ jobs:
           python3 -m pip install playwright
           python3 -m playwright install --with-deps chromium
       - name: Check offline rendering and responsive controls
-        run: python3 tests/browser_preview.py
+        run: |
+          python3 tests/browser_preview.py
+          python3 tests/scaffold_browser_preview.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
