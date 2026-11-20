@@ -14,7 +14,7 @@ import json
 import re
 import shutil
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from scripts.build_common_flags import build_common_atlas
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -293,7 +293,13 @@ RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
     head += '''def role(wallet, account):
     if wallet in KNOWN_SERVICES:
         return KNOWN_SERVICES[wallet]
-    return next((ROLES[i] for i in account.get("interfaces", []) if i in ROLES), None)
+    known = next((ROLES[i] for i in account.get("interfaces", []) if i in ROLES), None)
+    if known:
+        return known
+    # Generic contracts are not automatically a named service or human wallet.
+    if account.get("status") == "active" and account.get("is_wallet") is False:
+        return "unclassified_contract"
+    return None
 '''
     return schema(generic(head + "\n\n".join(methods), cfg))
 
@@ -386,7 +392,7 @@ def page_html(source, cfg):
             '<a href="https://gram.org/address/' + address +
             '"><span lang="ru">Контракт</span><span lang="en">Contract</span></a>')
         fee = " · " + html.escape(str(pool["fee"])) + " fee" if pool.get("fee") else ""
-        cards.append('<article class="poolCard"><h3>' + symbol +
+        cards.append('<article class="poolCard" data-quote-address="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"><h3>' + symbol +
                      ' / TON</h3><p>' + dexname + fee +
                      '</p><div class="poolActions">' + actions + '</div></article>')
     pool_html = ('<section id="pools" class="panel resources" aria-labelledby="pools-title">'
@@ -553,6 +559,39 @@ def app_js(source, cfg):
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    # A site's official website must receive its own token emblem, even when
+    # the domain has no word "project" in it (for example tac.build).
+    site = cfg.get("links", {}).get("website")
+    host = urlsplit(site).hostname if site else ""
+    source = replace(source, 'if(host.includes("project"))return"project";',
+                     ('if(host===' + json.dumps(host) + ')return"project";') if host
+                     else '/* No configured project website */', "project website emblem")
+    # Differentiate unclassified smart contracts from proven service addresses.
+    source = replace(source, 'identity.role;',
+                     '(identity.role==="unclassified_contract" ? (lang==="ru" ? "Смарт-контракт · назначение неизвестно" : "Smart contract · purpose unverified") : identity.role);',
+                     "contract classification disclosure")
+    source = replace(source, 'return typeof role==="string"&&role.trim()?role.trim():null;',
+                     'return typeof role==="string"&&role.trim()?role.trim():null;',
+                     "service role marker")
+    source = source.replace('"services": "⚙️ Сервисы"',
+                            '"services": "⚙️ Сервисы и контракты"')
+    source = source.replace('"services": "⚙️ Services"',
+                            '"services": "⚙️ Services & contracts"')
+    source = replace(source, '$("poolChecked").textContent=section?.asOf?words.checked+" · "+stamp(section.asOf):"";',
+                     '$("poolChecked").textContent="";',
+                     "remove dated GeckoTerminal caption")
+    # Store quote contract next to each discovered pool; a spoofed ticker alone
+    # must never trigger a trusted TON or USDT token flag.
+    source = replace(source, 'const card=el("article",undefined,"poolCard");',
+                     'const card=el("article",undefined,"poolCard");card.dataset.quoteAddress=pool.token;',
+                     "pool quote master")
+    source = replace(source,
+                     'const tokenKind=brandLabels[quote]!==undefined?quote:(quote==="ton"?"ton":null);',
+                     'const raw=rawLookupAddress(card.dataset.quoteAddress);'
+                     'const native=rawLookupAddress("EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c");'
+                     'const tether=rawLookupAddress("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");'
+                     'const tokenKind=raw===native?"ton":raw===tether?"usdt":null;',
+                     "only verified quote contract logos")
     # Browser storage is scoped per token even when multiple sites share an origin.
     storage_prefix = ("observatory-" + cfg["slug"] + "-" +
                       raw_address(cfg["master"]).split(":")[1][:12])
