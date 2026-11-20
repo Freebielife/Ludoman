@@ -1,6 +1,7 @@
 """Independent, offline tests for per-token layout customization and badge proofs."""
 import base64
 import json
+import importlib.util
 import subprocess
 import sys
 import tempfile
@@ -10,6 +11,8 @@ from pathlib import Path
 from scripts.scaffold_observatory import ProjectError, read_config, scaffold
 from tests.test_scaffold import friendly
 
+
+HAS_PILLOW = importlib.util.find_spec('PIL') is not None
 
 class CustomizationTests(unittest.TestCase):
     def setUp(self):
@@ -30,6 +33,7 @@ class CustomizationTests(unittest.TestCase):
     def save(self):
         self.config_path.write_text(json.dumps(self.cfg))
 
+    @unittest.skipUnless(HAS_PILLOW, "Pillow is installed only for scaffold QA")
     def test_custom_telegram_and_isolated_settings(self):
         self.save()
         scaffold(self.config_path, self.out)
@@ -57,6 +61,7 @@ class CustomizationTests(unittest.TestCase):
             other_js.split('localStorage.getItem(')[1].split(')')[0],
         )
 
+    @unittest.skipUnless(HAS_PILLOW, "Pillow is installed only for scaffold QA")
     def test_official_staking_link_not_assumed_tvl(self):
         self.cfg["links"]["staking"] = "https://staking.example.org/"
         self.save()
@@ -79,6 +84,7 @@ class CustomizationTests(unittest.TestCase):
         self.assertNotIn("staking.example.org", other)
         self.assertNotIn("Official staking page", other)
 
+    @unittest.skipUnless(HAS_PILLOW, "Pillow is installed only for scaffold QA")
     def test_custom_background_and_verified_badges(self):
         webp = base64.b64decode(
             "UklGRi4AAABXRUJQVlA4ICIAAABwAQCdASoEAAQAAoBCJYwCdAFAAAD+9w1pV6vMptIhvQAA")
