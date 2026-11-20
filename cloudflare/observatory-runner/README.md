@@ -67,3 +67,11 @@ The source registry is enabled; this does not confirm Worker deployment or
 GitHub token authorization. Add ARBUZ to the existing token's selected repositories,
 then verify two real `workflow_dispatch` runs before relying on Cloudflare alone.
 No credentials or token permissions were modified by this registration.
+
+## MEM onboarding — 20 Nov 2026
+
+MEM is registered for Freebielife/NOT-MEME, update.yml on main, every 30 minutes
+at :00/:30 UTC. This shares the least occupied phase. Other project slots
+are unchanged. The repository retains GitHub cron :20/:50 as a fallback.
+Source registration does not verify production deployment or token authorization.
+The existing GitHub token must include NOT-MEME with Actions write permission.

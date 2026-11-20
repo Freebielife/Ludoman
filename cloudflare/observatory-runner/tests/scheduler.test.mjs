@@ -30,7 +30,7 @@ test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
   assert.equal(tac.phaseMinutes,10);
   assert.equal(tac.enabled,true);
   assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects).map(p=>p.id), ["tac"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman", "mem"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", projects).map(p=>p.id), ["tac"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects).map(p=>p.id), ["arbuz"]);
 });
@@ -130,7 +130,8 @@ test("cloudflare scheduled handler dispatches configured repos", async () => {
   };
   try {
     await worker.scheduled({ scheduledTime: Date.parse(monday) }, { GITHUB_ACTIONS_TOKEN: "test-secret" });
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 2);
+    assert.ok(calls.some(([url]) => url.includes("/NOT-MEME/actions/workflows/update.yml/dispatches")));
   } finally {
     globalThis.fetch = original;
   }

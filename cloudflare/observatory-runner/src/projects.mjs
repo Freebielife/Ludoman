@@ -35,5 +35,15 @@ export const projects = Object.freeze([
     everyMinutes: 30,
     phaseMinutes: 20,
     enabled: true
+  }),
+  Object.freeze({
+    id: "mem",
+    owner: "Freebielife",
+    repo: "NOT-MEME",
+    workflow: "update.yml",
+    ref: "main",
+    everyMinutes: 30,
+    phaseMinutes: 0,
+    enabled: true
   })
 ]);
