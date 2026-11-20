@@ -2,7 +2,9 @@
 
 This is a **single, shared scheduler** for Ludoman and future TON observatories. The source currently lives in Ludoman's repository, but the running Worker is independent of any token. It does not serve TON Sites, fetch blockchain data, modify tokens, or handle Telegram messages. Each project continues to collect/build its own on-chain snapshot in its GitHub repository.
 
-**Status:** Repository configuration only. Until you connect a Cloudflare account, deploy this Worker, add its secret, and verify dispatches, the existing Ludoman GitHub cron stays active.
+**Status (20 Nov 2026):** The GitHub Actions history for Ludoman includes regular successful `workflow_dispatch` launches at **12:00, 12:30 UTC** and earlier, consistent with the configured external 30-minute runner. This is evidence that GitHub accepts remote dispatches, but Cloudflare's live deployment, secrets and logs must still be checked in its dashboard; these cannot be authenticated by repository contents alone. The legacy GitHub cron was removed from Ludoman `update.yml`.
+
+**TAC onboarding:** A second registry record for `Freebielife/Freebielife-TAC-Observatory` is now present with `workflow:"refresh.yml"`, `everyMinutes:30`, and `phaseMinutes:10` (planned runs at :10 / :40 UTC). It is deliberately **disabled** until the existing Cloudflare Worker secret `GITHUB_ACTIONS_TOKEN` is authorized to dispatch the new repository. Without that permission enabling TAC would produce GitHub 403 responses and failed Worker runs. To activate safely: (1) in GitHub fine-grained token settings add that exact repository with **Actions: Read and write**, (2) confirm the Worker secret still uses that token (replace its encrypted value if it was regenerated), (3) set TAC's `enabled:true` here and deploy the connected Worker, (4) observe successful TAC `workflow_dispatch` runs at two consecutive :10 / :40 UTC slots. **Never paste a PAT into chat, GitHub code or screenshots.** Until these steps are complete TAC retains its own native GitHub `*/10` cron as a fallback, though scheduled starts may be delayed or skipped by GitHub.
 
 ## Architecture
 

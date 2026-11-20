@@ -76,6 +76,9 @@ class ScaffoldTests(unittest.TestCase):
         self.assertNotIn("socool.ton", (self.out / "assets.py").read_text())
         self.assertNotIn("JVault", app)
         self.assertNotIn("VNUK", app)
+        self.assertIn("const required=['trades','holders'];", app)
+        self.assertIn("Некоторые разделы пока не проиндексированы.", app)
+        self.assertNotIn("const times=['trades','burns','holders']", app)
         self.assertIn('"updated": 1', snapshot)
         commands = [
             [sys.executable, "-m", "compileall", "-q", "."],
