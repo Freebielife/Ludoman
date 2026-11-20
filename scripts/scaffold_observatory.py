@@ -218,11 +218,17 @@ def helper(source, name):
     return "\n".join(source.splitlines()[node.lineno-1:node.end_lineno]) + "\n"
 
 
-def common_badges(source):
+def common_badges(source, cfg):
+    """Generic badge collectors with independently verifiable chain conditions."""
     methods = [helper(source, n) for n in
                ("raw_friendly", "decode_address", "fragment_number_owner",
-                "refresh_fragment_numbers")]
-    return ('''"""Reusable TON/DNS/Fragment badges. No project-specific NFT sources."""
+                "refresh_fragment_numbers", "holders", "nft_owners")]
+    rules = {
+        entry["id"]: {"match": entry.get("match", "any"),
+                      "criteria": entry["criteria"]}
+        for entry in cfg.get("badges", [])
+    }
+    head = '''"""TON/DNS/Fragment and project-configured badge proofs. No foreign NFTs."""
 import base64
 import binascii
 import re
@@ -232,11 +238,38 @@ from domains import pages, owned, check_queue
 
 ZERO = "0:" + "0" * 64
 FRAGMENT_NUMBERS = "0:0e41dc1dc3c9067ed24248580e12b3359818d83dee0304fabcf80845eafafdb2"
-
+'''
+    head += "\nBADGE_RULES = " + repr(rules) + "\n"
+    head += '''
 def refresh(previous, now):
-    return {"sources": {}, "failed": []}
-''' + "\n\n".join(methods))
-
+    # Recheck expensive on-chain holder/NFT sources at most every six hours.
+    # A failing source does not grant an unconfirmed badge.
+    old = previous.get("sources", {})
+    sources = {key: old[key] for key in BADGE_RULES if key in old}
+    failed = []
+    for key, spec in BADGE_RULES.items():
+        last = sources.get(key, {})
+        if last.get("asOf", 0) > now - 6 * 3600:
+            continue
+        try:
+            sets = []
+            for criterion in spec["criteria"]:
+                if criterion["type"] == "jetton_min":
+                    wallets = holders(criterion["master"], True, criterion["min_balance"])
+                elif criterion["type"] == "nft_collection":
+                    wallets = nft_owners(criterion["collection"], False)
+                else:
+                    raise ValueError("Unrecognized badge proof")
+                sets.append(set(wallets))
+            qualifying = (set.intersection(*sets) if spec["match"] == "all"
+                          else set.union(*sets))
+            sources[key] = {"asOf": now, "wallets": {wallet: True for wallet in qualifying}}
+        except (OSError, ValueError, KeyError, RuntimeError) as error:
+            failed.append(key)
+            print("Badge source failed:", key, type(error).__name__, flush=True)
+    return {"sources": sources, "failed": failed}
+'''
+    return head + "\n\n".join(methods)
 
 def common_observatory(source, cfg):
     methods = [helper(source, n) for n in
@@ -694,7 +727,7 @@ def scaffold(config_path, output):
     manifest["assets"] = [x for x in manifest["assets"] if x["file"] in COMMON_SVGS]
     manifest["pending"] = []
     (pack / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
-    (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text()))
+    (output / "badges.py").write_text(common_badges((ROOT / "badges.py").read_text(), cfg))
     (output / "observatory.py").write_text(common_observatory(
         (ROOT / "observatory.py").read_text(), cfg))
     python_sources(cfg, output)
