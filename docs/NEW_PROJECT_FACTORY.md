@@ -215,3 +215,24 @@ and `roleChecked`; the service gear links to the attribution source.
 
 Both the production Ludoman collector and generated incremental collector update
 the registry. KITO is independent and is not modified by this integration.
+
+## Automatic historical swap backfill
+
+Every generated site includes `trade_history.py` and its offline regression tests.
+The first successful recent collection covers up to one day; subsequent refreshes
+preserve a rolling 366-day archive, rather than deleting rows older than a week.
+A separate bounded backfill walks each configured pool backwards with persisted
+`before_lt` cursors. Each complete verified page is saved atomically; failed pages
+keep their cursor for retry. The same swap parser validates live and old events.
+
+Recent updates run first. Backfill has a small request budget (four pages per
+refresh by default; TAC uses eight), so historical work does not require scanning
+the full archive again on every run. It preserves `trades.asOf` as the actual live
+refresh time and only expands `trades.since` when all configured pools cover the
+extended interval. `tradeHistory` records per-pool progress and failures. Source
+exhaustion completes the available archive even if the pool is younger than a year.
+
+The chart draws only observed prices and displays the available starting date
+for partial periods. A year selector cannot produce data before pool creation or
+before events indexed by the configured source. Market capitalization uses the
+current supply with historical swap prices, as documented by the valuation tests.

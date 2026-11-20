@@ -621,7 +621,7 @@ function chart(){
  $('lastPrice').textContent=model.latestCap!==null?capWithUnit(model.latestCap):'—';
  const change=$('capChange');change.textContent=model.change===null?'':(model.change>=0?'+':'')+format(model.change,2)+'%';
  change.className='capChange '+(model.change===null?'':model.change>=0?'capPositive':'capNegative');
- $('capPeriod').textContent=!points.length?t('no'):model.partial?t('capPartial'):t('periodNames')[period];
+ $('capPeriod').textContent=!points.length?t('no'):model.partial?t('capPartial')+' · '+t('since')+' '+stamp(points[0].time):t('periodNames')[period];
  $('capLow').textContent=model.low===undefined?'':t('capLow')+' · '+capWithUnit(model.low);
  $('capHigh').textContent=model.high===undefined?'':t('capHigh')+' · '+capWithUnit(model.high);
  const plot=$('plot');plot.replaceChildren();

@@ -13,6 +13,7 @@ import domains
 import observatory
 import pools
 import trades
+import trade_history
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "snapshot.json"
@@ -84,6 +85,8 @@ def refresh():
             errors.append(key)
             print(key, "FAILED:", error, file=sys.stderr, flush=True)
     core_updated = len(errors) - core_error_count < 3
+    if trade_history.refresh(snapshot, now, save=lambda value: save(DATA, value)):
+        errors.append("tradeHistory")
     if service_registry.update(snapshot, now, observatory.KNOWN_SERVICES):
         errors.append("serviceRegistry")
     if core_updated:

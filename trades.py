@@ -70,7 +70,8 @@ def collect_pool(pool, start, end, max_pages):
 
 
 def collect(previous, cutoff, now, max_pages=180):
-    start = max(cutoff, previous.get("asOf", cutoff) - 6 * 3600)
+    # Bootstrap a bounded recent window; the separate backfill extends it.
+    start = max(cutoff, previous["asOf"] - 6 * 3600) if previous.get("asOf") else max(cutoff, now - 86400)
     rows = {row["tx"]: row for row in previous.get("rows", []) if cutoff <= row["time"] < start}
     for pool in POOLS:
         fresh, _ = collect_pool(pool, start, now, max_pages)
