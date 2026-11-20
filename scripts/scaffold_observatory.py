@@ -24,6 +24,7 @@ CORE = ("assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",
+        "scripts/refresh_observatory.py",
         "tests/market-cap.test.cjs", "tests/snapshot-loader.test.cjs")
 COMMON_SVGS = ("brands/telegram.svg", "brands/ton.svg", "brands/usdt.svg",
                "brands/github.svg", "brands/x.svg",
@@ -786,7 +787,7 @@ jobs:
       - name: Collect on-chain data
         id: collect
         continue-on-error: true
-        run: python3 collect.py
+        run: python3 -m scripts.refresh_observatory
       - name: Build and publish verified snapshot
         run: |
           python3 build.py
@@ -934,7 +935,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
     (output / "README.md").write_text(
         "# " + cfg["name"] + " Observatory\n\n"
         "Generated from the reusable TON Observatory framework.\n\n"
-        "Run python3 collect.py; python3 build.py; python3 verify.py.\n"
+        "Run python3 -m scripts.refresh_observatory; python3 build.py; python3 verify.py.\n"
         "Publish index.html in TON Sites only after independent on-chain verification.\n"
         "The initial snapshot is EMPTY: no market data is claimed.\n"
         "Only native TON swap pairs supported. Locks, staking and custom project NFT "
