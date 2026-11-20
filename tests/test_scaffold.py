@@ -63,6 +63,11 @@ class ScaffoldTests(unittest.TestCase):
         app = (self.out / "web/app.js").read_text()
         snapshot = (self.out / "data/snapshot.json").read_text()
         self.assertIn("SAMPLE", page)
+        self.assertTrue((self.out / "common-services.json").is_file())
+        self.assertTrue((self.out / "service_registry.py").is_file())
+        self.assertTrue((self.out / "tests/test_service_registry.py").is_file())
+        self.assertIn("service_registry.update", (self.out / "scripts/refresh_observatory.py").read_text())
+        self.assertIn("import service_registry", (self.out / "observatory.py").read_text())
         self.assertIn(self.config["master"], app)
         self.assertIn(self.config["primary_pool"], (self.out / "trades.py").read_text())
         self.assertIn('DECIMALS = 6', (self.out / "assets.py").read_text())
@@ -82,6 +87,7 @@ class ScaffoldTests(unittest.TestCase):
         self.assertIn('"updated": 1', snapshot)
         commands = [
             [sys.executable, "-m", "compileall", "-q", "."],
+            [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_service_registry.py"],
             [sys.executable, "build.py"],
             [sys.executable, "verify.py"],
             ["node", "--check", "web/app.js"],

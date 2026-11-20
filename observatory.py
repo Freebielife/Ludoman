@@ -1,5 +1,6 @@
 """Verified wallet identities and transfers to the TON zero address."""
 import base64
+import service_registry
 import time
 from urllib.parse import urlencode
 
@@ -97,9 +98,12 @@ KNOWN_SERVICES = {
     "0:2d7075bcc5a3baceff8d869f9c466be6f0ee699700859811ad9da68f6aacc89a": "CryptoCheck",
 }
 
-def role(wallet, account):
+def role(wallet, account, registry=None):
     if wallet in KNOWN_SERVICES:
         return KNOWN_SERVICES[wallet]
+    custody = service_registry.lookup(wallet, registry)
+    if custody:
+        return custody
     if wallet == POOL_RAW:
         return "JVault Staking Pool"
     if wallet in TONRAFFLES_LOCKS:
@@ -132,7 +136,7 @@ def identity(snapshot, now, budget=32, pace=1.05):
         try:
             account = fetch(f"/accounts/{wallet}", attempts=2)
             time.sleep(pace)
-            label = role(wallet, account)
+            label = role(wallet, account, snapshot.get("serviceRegistry"))
             names = fetch(f"/accounts/{wallet}/dns/backresolve", attempts=2)["domains"] if account["is_wallet"] else []
             domain = None
             linked_digits = []

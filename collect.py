@@ -7,6 +7,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import assets
+import service_registry
 import badges
 import domains
 import observatory
@@ -83,6 +84,8 @@ def refresh():
             errors.append(key)
             print(key, "FAILED:", error, file=sys.stderr, flush=True)
     core_updated = len(errors) - core_error_count < 3
+    if service_registry.update(snapshot, now, observatory.KNOWN_SERVICES):
+        errors.append("serviceRegistry")
     if core_updated:
         try:
             snapshot["domains"] = domains.enrich(snapshot, now)

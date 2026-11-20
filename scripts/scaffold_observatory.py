@@ -20,7 +20,7 @@ from scripts.build_common_flags import build_common_atlas
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
          "dedust": ("DeDust", "dedust", "https://dedust.io")}
-CORE = ("assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
+CORE = ("service_registry.py", "common-services.json", "tests/test_service_registry.py", "assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",
@@ -279,6 +279,7 @@ def common_observatory(source, cfg):
     head = '''"""Zero-address burns and identified TON accounts. No staking assumptions."""
 import base64
 import time
+import service_registry
 from urllib.parse import urlencode
 from assets import DOMAIN, MASTER, MASTER_RAW, fetch, raw_address, resolved_domain, token_amount
 from domains import DIGITS
@@ -291,9 +292,12 @@ ROLES = {"dedust_vault":"DeDust Vault","stonfi_router_v2":"STON.fi Router V2",
 RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
 '''
     head += "\nKNOWN_SERVICES = " + repr(cfg["_services"]) + "\n"
-    head += '''def role(wallet, account):
+    head += '''def role(wallet, account, registry=None):
     if wallet in KNOWN_SERVICES:
         return KNOWN_SERVICES[wallet]
+    custody = service_registry.lookup(wallet, registry)
+    if custody:
+        return custody
     known = next((ROLES[i] for i in account.get("interfaces", []) if i in ROLES), None)
     if known:
         return known
@@ -785,6 +789,7 @@ on:
       - 'scripts/**'
       - 'tests/**'
       - 'project.json'
+      - 'common-services.json'
       - '.github/workflows/update.yml'
 permissions:
   contents: write
@@ -802,6 +807,7 @@ jobs:
           fetch-depth: 20
       - name: Validate engine
         run: |
+          python3 -m unittest discover -s tests -p "test_*.py"
           node --check web/app.js
           node --test tests/*.test.cjs
       - name: Collect on-chain data
@@ -837,7 +843,8 @@ def scaffold(config_path, output):
             value = replace(value, "Freebielife/Ludoman",
                             cfg["github"]["owner"] + "/" + cfg["github"]["repo"],
                             "GitHub snapshot URL")
-        value = generic(value, cfg)
+        if relative not in ("common-services.json", "service_registry.py", "tests/test_service_registry.py"):
+            value = generic(value, cfg)
         if relative in ("assets.py", "trades.py", "collect.py", "verify.py",
                         "web/app.js", "web/market-cap.js",
                         "tests/market-cap.test.cjs"):
