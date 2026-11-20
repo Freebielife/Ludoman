@@ -297,6 +297,12 @@ RECOVERABLE = (OSError, ValueError, KeyError, RuntimeError)
     return schema(generic(head + "\n\n".join(methods), cfg))
 
 
+def image_uri(path):
+    suffix = path.suffix.lower()
+    mime = "image/gif" if suffix == ".gif" else "image/webp"
+    return "data:" + mime + ";base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
 def artwork(cfg):
     name = html.escape(cfg["symbol"][:3])
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
@@ -311,6 +317,15 @@ def artwork(cfg):
 
 def page_html(source, cfg):
     symbol = html.escape(cfg["symbol"])
+    telegram_button = (
+        '<a href="' + html.escape(cfg["links"]["telegram"], quote=True) +
+        '" target="_blank" rel="noopener noreferrer">Telegram</a>'
+        if "telegram" in cfg.get("links", {}) else ""
+    )
+    source = replace(
+        source,
+        '<a href="https://t.me/the1000project" target="_blank" rel="noopener noreferrer">Telegram</a>',
+        telegram_button, "remove Ludoman Telegram link from new hero")
     first = next(p for p in cfg["pools"] if p["address"] == cfg["primary_pool"])
     venue, venue_logo, _ = DEXES[first["dex"]]
     venues = list(dict.fromkeys(p["dex"] for p in cfg["pools"]))
@@ -329,12 +344,27 @@ def page_html(source, cfg):
                             source, count=1)
     if count != 1:
         raise ProjectError("Missing operation-DEX heading")
+    custom_guide = ""
+    for badge in cfg.get("badges", []):
+        badge_id = badge["id"]
+        graphic = cfg["_badge_icons"].get(badge_id)
+        art = ('<img src="' + image_uri(graphic) + '" width="26" height="26" alt="">'
+               if graphic else '<span class="customBadgeSymbol" aria-hidden="true">' +
+               html.escape(badge["label"][:2]) + '</span>')
+        custom_guide += (
+            '<dt data-project-badge="' + badge_id + '"><span class="projectBadge badgePreview customBadge">' +
+            art + '</span>' + html.escape(badge["label"]) + '</dt>'
+            '<dd class="customBadgeDescription"><span lang="ru">' +
+            html.escape(badge["description_ru"]) + '</span><span lang="en">' +
+            html.escape(badge["description_en"]) + '</span></dd>'
+        )
     guide = ('<details class="badgeLegend"><summary><span aria-hidden="true">ⓘ </span>'
              '<span data-t="badgeLegend"></span></summary><dl>'
              '<dt>OG</dt><dd data-t="badgeOg"></dd>'
              '<dt>+888</dt><dd data-t="badgeFragment"></dd>'
              '<dt>0000.ton</dt><dd data-t="badgeDigits"></dd>'
-             '<dt>🔥</dt><dd data-t="badgeBurn"></dd></dl></details>')
+             '<dt>🔥</dt><dd data-t="badgeBurn"></dd>' +
+             custom_guide + '</dl></details>')
     source, count = re.subn(r'<details class="badgeLegend">.*?</details>',
                             lambda _: guide, source, count=1, flags=re.S)
     if count != 1:
