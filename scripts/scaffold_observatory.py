@@ -562,8 +562,7 @@ def app_js(source, cfg):
     source = replace(
         source, 'item.append(check,el("span",label));list.append(item);',
         'item.append(check);'
-        'const icon=document.querySelector('
-        '"#wallets .badgeLegend dt[data-project-badge=\'+key+\'] img");'
+        "const icon=document.querySelector('#wallets .badgeLegend dt[data-project-badge=\"'+key+'\"] img');"
         'if(icon)item.append(icon.cloneNode(true));'
         'item.append(el("span",label));list.append(item);',
         "show custom badge artwork inside operation filter")
