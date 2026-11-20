@@ -11,5 +11,17 @@ export const projects = Object.freeze([
     everyMinutes: 30,
     phaseMinutes: 0,
     enabled: true
+  }),
+  // Prepared for Cloudflare scheduling but deliberately disabled until the
+  // existing Worker's GitHub token is granted Actions:write for this new repo.
+  Object.freeze({
+    id: "tac",
+    owner: "Freebielife",
+    repo: "Freebielife-TAC-Observatory",
+    workflow: "refresh.yml",
+    ref: "main",
+    everyMinutes: 30,
+    phaseMinutes: 10,
+    enabled: false
   })
 ]);
