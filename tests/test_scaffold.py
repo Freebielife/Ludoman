@@ -71,6 +71,9 @@ class ScaffoldTests(unittest.TestCase):
         self.assertNotIn("CryptoCheck", (self.out / "observatory.py").read_text())
         self.assertNotIn("approved-brand-atlas.json", str(list((self.out / "assets/icon-pack").glob("*.json"))))
         self.assertEqual(list((self.out / "web").glob("*.webp")), [])
+        self.assertNotIn("socool.ton", (self.out / "assets.py").read_text())
+        self.assertNotIn("JVault", app)
+        self.assertNotIn("VNUK", app)
         self.assertIn('"updated": 1', snapshot)
         commands = [
             [sys.executable, "-m", "compileall", "-q", "."],
@@ -85,8 +88,10 @@ class ScaffoldTests(unittest.TestCase):
                 self.assertEqual(done.returncode, 0, done.stdout[-2000:] + done.stderr[-2000:])
         index = (self.out / "index.html").read_text()
         self.assertIn(self.config["master"], index)
-        self.assertNotIn("LUDOMAN", index)
-        self.assertNotIn("1000ludoman", index)
+        for foreign in ("LUDOMAN", "VNUK", "ARNI", "NAPIWAS",
+                        "Joystick", "Phoenix", "JVault", "CryptoCheck",
+                        "1000ludoman", "socool.ton", "author NFT"):
+            self.assertNotIn(foreign, index, foreign)
         self.assertNotIn("TONecoFlags", index)
         self.assertNotIn("mRvnukICHlife", index)
         self.assertIn("https://github.com/ExampleOrg/SampleToken", index)
