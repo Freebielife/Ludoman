@@ -1688,8 +1688,14 @@ function walletIdentity(raw,name,kind,{activity=false, holder=false, verifiedDom
     wrapper.classList.add("serviceWallet");
     const service=el("span","⚙️","serviceGear");
     service.title=(lang==="ru"?"Сервисный кошелёк · ":"Service wallet · ")+identity.role;
+    if(identity.roleSource==="https://github.com/tonkeeper/ton-assets/blob/main/accounts.json"){
+      service.title+=(lang==="ru"?" · Метка Tonkeeper; открыть источник":" · Tonkeeper label; open source");
+      const proof=el("a");
+      proof.href=identity.roleSource;proof.target="_blank";proof.rel="noopener noreferrer";
+      proof.setAttribute("aria-label",service.title);
+      proof.append(service);wrapper.append(proof);
+    }else wrapper.append(service);
     service.setAttribute("aria-label",service.title);
-    wrapper.append(service);
   }
   appendProjectBadges(wrapper,raw,verifiedDomain,ownsFragment);
   return wrapper;
