@@ -1,0 +1,52 @@
+name: TAC Observatory pilot artifact
+on:
+  push:
+    branches:
+      - feature/tac-observatory-pilot-20261120
+    paths:
+      - 'examples/tac-pilot/**'
+      - 'scripts/build_tac_pilot.py'
+      - 'tests/tac_pilot_browser.py'
+      - '.github/workflows/tac-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare image and Chromium test tools
+        run: |
+          pip install --disable-pip-version-check Pillow playwright
+          python -m playwright install --with-deps chromium
+      - name: Generate TAC-only observatory
+        run: |
+          python -m scripts.build_tac_pilot
+          node --check build/tac-pilot/web/app.js
+          node --test build/tac-pilot/tests/*.test.cjs
+      - name: Collect verified on-chain data if available
+        id: collect
+        continue-on-error: true
+        working-directory: build/tac-pilot
+        run: timeout --signal=TERM 280 python collect.py
+      - name: Assemble self-contained TAC HTML
+        working-directory: build/tac-pilot
+        run: |
+          python build.py
+          python verify.py
+      - name: Test TAC site in mobile and desktop Chromium
+        run: python tests/tac_pilot_browser.py
+      - name: Upload complete pilot and browser previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tac-observatory-pilot
+          path: |
+            build/tac-pilot/
+          if-no-files-found: error
+          retention-days: 30
