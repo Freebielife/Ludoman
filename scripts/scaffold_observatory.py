@@ -480,6 +480,21 @@ def app_js(source, cfg):
   const domains=snapshot.domains?.byWallet?.[wallet];
   const digits=numericDomains(wallet,verifiedDomain);
   appendDomainBadge(wrapper,digits.names,"digits",domains?.digitsAt,digits.linked);
+  for(const definition of customBadgeDefs){
+    const proof=snapshot.badges?.sources?.[definition.id];
+    if(!proof || proof.asOf<Date.now()/1000-24*3600 || !proof.wallets?.[wallet])continue;
+    const badge=definition.url?link(definition.url,""):el("span");
+    badge.className="projectBadge customBadge";
+    badge.style.setProperty("--badge-accent",definition.color||"#76bfff");
+    badge.title=(lang==="ru"?definition.description_ru:definition.description_en);
+    badge.setAttribute("aria-label",definition.label+" · "+badge.title);
+    const image=document.querySelector(
+      '#wallets .badgeLegend dt[data-project-badge="'+definition.id+'"] img');
+    if(image)badge.append(image.cloneNode(true));
+    else badge.append(el("span",definition.label.slice(0,2),"customBadgeSymbol"));
+    badge.append(el("span",definition.label,"badgeLabel"));
+    badges.append(badge);
+  }
   if((burnTotals?.get(wallet)||0n)>=1000n*10n**9n){
     const badge=el("span","🔥","projectBadge burner");
     badge.title=t("burnBadge");
@@ -496,6 +511,16 @@ def app_js(source, cfg):
         raise ProjectError("Cannot replace legacy project-specific badge engine")
     source = source.replace('const authorCollection="";', '')
     source = source.replace('const projectBadgeDefs=[];', '')
+    badge_defs = [
+        {key: badge[key] for key in
+         ("id", "label", "description_ru", "description_en", "url", "color")
+         if key in badge}
+        for badge in cfg.get("badges", [])
+    ]
+    badge_json = json.dumps(badge_defs, ensure_ascii=False, separators=(",", ":")).replace("<", r"\u003c")
+    source = replace(source, 'const fragmentCollection=',
+                     'const customBadgeDefs=' + badge_json + ';\nconst fragmentCollection=',
+                     "custom badge display configuration")
     source = replace(source,
                      'const legendBrands={"+888":"fragment","author NFT":"getgems","JVault":"jvault"};',
                      'const legendBrands={"+888":"fragment"};',
@@ -515,15 +540,25 @@ def app_js(source, cfg):
         if count != 2:
             raise ProjectError("Could not isolate bilingual project badge translation " + key)
     source = source.replace('kito:"K",', '').replace('usda:"U",', '').replace('rton:"R",', '')
+    filters = [["og", "OG"], ["fragmentNumber", "+888"],
+               ["digits", "0000.ton"], ["burner", "🔥 Burn"]]
+    filters += [[badge["id"], badge["label"]] for badge in cfg.get("badges", [])]
+    filter_js = json.dumps(filters, ensure_ascii=False, separators=(",", ":")).replace("<", r"\u003c")
     source, n = re.subn(r'const badgeFilterDefs=\[.*?\];',
-                        'const badgeFilterDefs=[["og","OG"],["fragmentNumber","+888"],'
-                        '["digits","0000.ton"],["burner","🔥 Burn"]];',
+                        lambda _: 'const badgeFilterDefs=' + filter_js + ';',
                         source, count=1, flags=re.S)
     if n != 1:
         raise ProjectError("Cannot remove project badge filters")
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    # Browser storage is scoped per token even when multiple sites share an origin.
+    storage_prefix = ("observatory-" + cfg["slug"] + "-" +
+                      raw_address(cfg["master"]).split(":")[1][:12])
+    source = replace(source, '"project-lang"',
+                     json.dumps(storage_prefix + "-lang"), "per-token language storage")
+    source = replace(source, '"project-currency"',
+                     json.dumps(storage_prefix + "-currency"), "per-token currency storage")
     precision = str(cfg["decimals"])
     source = replace(source, r'!/^\d{0,9}$/.test(fraction)',
                      '!/^\\d{0,' + precision + '}$/.test(fraction)',
