@@ -68,6 +68,8 @@ def main():
             assert page.locator('#pools a[href^="https://app.ston.fi/pools/"]').count() == 1
             text = page.locator("body").inner_text()
             assert "LUDOMAN" not in text and "CryptoCheck" not in text
+            assert "Invalid Date" not in text
+            assert "No verified lock or staking" not in text
             assert "NEUTRAL" in text
             assert "TON" in text
             widths = page.evaluate("""() => ({
@@ -79,6 +81,7 @@ def main():
             assert page.locator("#sellerPeriods button").count() == 0
             page.locator("#en").click()
             assert page.evaluate("document.documentElement.lang") == "en"
+            assert "Источники заморозки и стейкинга" not in page.locator("#supply").inner_text()
             page.locator("#ru").click()
             assert page.evaluate("document.documentElement.lang") == "ru"
             assert not errors, (width, errors)
