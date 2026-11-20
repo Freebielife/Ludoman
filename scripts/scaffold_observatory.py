@@ -20,7 +20,7 @@ from scripts.build_common_flags import build_common_atlas
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
          "dedust": ("DeDust", "dedust", "https://dedust.io")}
-CORE = ("service_registry.py", "common-services.json", "tests/test_service_registry.py", "assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
+CORE = ("trade_history.py", "tests/test_trade_history.py", "service_registry.py", "common-services.json", "tests/test_service_registry.py", "assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",

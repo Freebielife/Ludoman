@@ -17,6 +17,7 @@ import service_registry
 import observatory
 import pools
 import trades
+import trade_history
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "data/snapshot.json"
@@ -69,8 +70,14 @@ def refresh() -> dict:
     else:
         errors.discard("serviceRegistry")
     save(snap)
-    stage("trades", lambda previous: trades.collect(previous, now - 7*86400,
+    stage("trades", lambda previous: trades.collect(previous, now - trade_history.YEAR,
                                                       now, max_pages=35))
+    if trade_history.refresh(snap, now, save=save):
+        errors.add("tradeHistory")
+    else:
+        errors.discard("tradeHistory")
+    snap["errors"] = sorted(errors)
+    save(snap)
     stage("rates", lambda _: {"asOf": now, "rows": trades.rates()},
           interval=6*3600)
     stage("pools", lambda _: pools.collect(now), interval=24*3600)
