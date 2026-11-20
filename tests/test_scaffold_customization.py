@@ -57,6 +57,28 @@ class CustomizationTests(unittest.TestCase):
             other_js.split('localStorage.getItem(')[1].split(')')[0],
         )
 
+    def test_official_staking_link_not_assumed_tvl(self):
+        self.cfg["links"]["staking"] = "https://staking.example.org/"
+        self.save()
+        scaffold(self.config_path, self.out)
+        page = (self.out / "web/page.html").read_text()
+        app = (self.out / "web/app.js").read_text()
+        self.assertIn('href="https://staking.example.org/"', page)
+        self.assertIn("Official staking page", page)
+        self.assertIn("Официальная страница стейкинга", page)
+        self.assertIn('data-brand="project"', page)
+        self.assertIn('const brand=anchor.dataset.brand||markFromLink(anchor);', app)
+        self.assertIn('id="stakingTotal">—</strong>', page)
+        self.assertNotIn("APY", page)
+        # The staking link is optional and must never be copied to other projects.
+        self.cfg["links"].pop("staking")
+        self.save()
+        second = self.base / "without-staking"
+        scaffold(self.config_path, second)
+        other = (second / "web/page.html").read_text()
+        self.assertNotIn("staking.example.org", other)
+        self.assertNotIn("Official staking page", other)
+
     def test_custom_background_and_verified_badges(self):
         webp = base64.b64decode(
             "UklGRi4AAABXRUJQVlA4ICIAAABwAQCdASoEAAQAAoBCJYwCdAFAAAD+9w1pV6vMptIhvQAA")
