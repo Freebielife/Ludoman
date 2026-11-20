@@ -61,6 +61,30 @@ def require(data, key, typ=str):
     return value
 
 
+def local_image(base, value, label, suffixes, max_bytes):
+    """Use verified local raster files without external downloads or SVG scripts."""
+    if not isinstance(value, str) or not value or Path(value).is_absolute():
+        raise ProjectError(label + " must be a relative local image path")
+    requested = Path(value)
+    if ".." in requested.parts or requested.suffix.lower() not in suffixes:
+        raise ProjectError(label + " has an unsupported path or image format")
+    image = (base / requested).resolve()
+    if not image.is_relative_to(base.resolve()) or not image.is_file():
+        raise ProjectError(label + " must reference an existing local image")
+    if not 0 < image.stat().st_size <= max_bytes:
+        raise ProjectError(label + " is empty or exceeds its size limit")
+    header = image.read_bytes()[:12]
+    if requested.suffix.lower() == ".webp":
+        valid = header.startswith(b"RIFF") and header[8:12] == b"WEBP"
+    elif requested.suffix.lower() == ".gif":
+        valid = header.startswith((b"GIF87a", b"GIF89a"))
+    else:
+        valid = False
+    if not valid:
+        raise ProjectError(label + " file content does not match its type")
+    return image
+
+
 def read_config(path):
     cfg = json.loads(path.read_text())
     slug, symbol, name = (require(cfg, k) for k in ("slug", "symbol", "name"))
