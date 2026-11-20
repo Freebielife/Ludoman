@@ -32,7 +32,7 @@ test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
   assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects).map(p=>p.id), ["tac"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", projects).map(p=>p.id), ["tac"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects), []);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects).map(p=>p.id), ["arbuz"]);
 });
 
 test("disabled project cannot be dispatched", () => {
@@ -99,7 +99,7 @@ test("no token means no API request, unless no projects are due", async () => {
     scheduledTime: monday, token: "", fetcher: spy
   }), /GITHUB_ACTIONS_TOKEN/);
   assert.deepEqual(await dispatchDue({
-    scheduledTime: "2026-11-16T12:20:00Z", token: "", fetcher: spy
+    scheduledTime: "2026-11-16T12:20:00Z", token: "", fetcher: spy, registry: [projects[0]]
   }), []);
 });
 
@@ -174,4 +174,22 @@ test("403 rate limit is classified separately from permissions", async () => {
       }), { status: 403, headers: { "x-ratelimit-remaining": "0" } }) }),
     /reason=rate-limit.*rate_remaining=0/
   );
+});
+
+
+test("ARBUZ uses :20/:50 and dispatches its own workflow", async () => {
+  const arbuz = projects.find(p => p.id === "arbuz");
+  assert.deepEqual({...arbuz}, {id:"arbuz",owner:"Freebielife",repo:"ARBUZ",
+    workflow:"update.yml",ref:"main",everyMinutes:30,phaseMinutes:20,enabled:true});
+  for (const minute of [20, 50]) {
+    const at = `2026-11-20T20:${minute}:00Z`;
+    assert.deepEqual(selectDueProjects(at).map(p => p.id), ["arbuz"]);
+    const requests = [];
+    assert.deepEqual(await dispatchDue({scheduledTime:at,token:"fixture-token",
+      fetcher:async (url,init) => {requests.push({url,init});return {ok:true,status:204}}}), ["arbuz"]);
+    assert.equal(requests.length,1);
+    assert.equal(requests[0].url,
+      "https://api.github.com/repos/Freebielife/ARBUZ/actions/workflows/update.yml/dispatches");
+    assert.deepEqual(JSON.parse(requests[0].init.body),{ref:"main"});
+  }
 });

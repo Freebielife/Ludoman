@@ -24,5 +24,16 @@ export const projects = Object.freeze([
     everyMinutes: 30,
     phaseMinutes: 10,
     enabled: true
+  }),
+  // ARBUZ uses the third slot; GitHub token access must include this repository.
+  Object.freeze({
+    id: "arbuz",
+    owner: "Freebielife",
+    repo: "ARBUZ",
+    workflow: "update.yml",
+    ref: "main",
+    everyMinutes: 30,
+    phaseMinutes: 20,
+    enabled: true
   })
 ]);

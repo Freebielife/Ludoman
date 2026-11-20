@@ -56,3 +56,14 @@ node --test cloudflare/observatory-runner/tests/*.test.mjs
 ```
 
 Manual deployment (requires local Cloudflare login) from this directory: `npx wrangler deploy`. Do not store `.dev.vars` or tokens in Git.
+
+
+## ARBUZ onboarding — 20 Nov 2026
+
+ARBUZ is registered in source for `Freebielife/ARBUZ`, workflow `update.yml`,
+branch `main`, every 30 minutes at :20/:50 UTC. Existing Ludoman and TAC slots
+are unchanged. Its repository also retains a native GitHub cron as a fallback.
+The source registry is enabled; this does not confirm Worker deployment or
+GitHub token authorization. Add ARBUZ to the existing token's selected repositories,
+then verify two real `workflow_dispatch` runs before relying on Cloudflare alone.
+No credentials or token permissions were modified by this registration.
