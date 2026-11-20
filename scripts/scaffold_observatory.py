@@ -327,6 +327,20 @@ def app_js(source, cfg):
     source = replace(source, 'const brandLabels={project:"L"',
                      'const brandLabels={project:' + json.dumps(cfg["symbol"][0]),
                      "project brand fallback")
+    precision = str(cfg["decimals"])
+    source = replace(source, r'!/^\d{0,9}$/.test(fraction)',
+                     '!/^\\d{0,' + precision + '}$/.test(fraction)',
+                     "token fractional precision")
+    source = replace(source, '10n**9n', '10n**' + precision + 'n',
+                     "integer token base units")
+    source = replace(source, 'padEnd(9,"0")', 'padEnd(' + precision + ',"0")',
+                     "fraction padding")
+    source = replace(source, 'const axisTime=seconds=>new Date(seconds*1000).toLocaleString',
+                     'const axisTime=seconds=>Number.isFinite(seconds)?new Date(seconds*1000).toLocaleString',
+                     "avoid invalid dates before initial snapshot")
+    source = replace(source, ":{day:'numeric',month:'short',year:'2-digit'});",
+                     ":{day:'numeric',month:'short',year:'2-digit'}):'—';",
+                     "empty snapshot chart axis")
     return source
 
 
