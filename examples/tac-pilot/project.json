@@ -1,0 +1,28 @@
+{
+  "slug": "tac",
+  "name": "TAC Token",
+  "symbol": "TAC",
+  "master": "EQBE_gBrU3mPI9hHjlJoR_kYyrhQgyCFD6EUWfa42W8T7EBP",
+  "decimals": 18,
+  "github": {
+    "owner": "Freebielife",
+    "repo": "TAC-Observatory"
+  },
+  "quote": "TON",
+  "primary_pool": "EQCg4hnMxXk6TemtkO9jUEmbAdxj7W5vY7OVmo41h3rvZEUI",
+  "pools": [
+    {
+      "address": "EQCg4hnMxXk6TemtkO9jUEmbAdxj7W5vY7OVmo41h3rvZEUI",
+      "dex": "stonfi",
+      "quote": "TON"
+    }
+  ],
+  "links": {
+    "website": "https://tac.build/",
+    "telegram": "https://t.me/TACbuild",
+    "x": "https://x.com/TacBuild"
+  },
+  "services": {},
+  "badges": [],
+  "logo_file": "tac-logo.webp"
+}
