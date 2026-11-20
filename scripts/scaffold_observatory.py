@@ -626,6 +626,26 @@ def app_js(source, cfg):
         'if(icon)item.append(icon.cloneNode(true));'
         'item.append(el("span",label));list.append(item);',
         "show custom badge artwork inside operation filter")
+    source = replace(source,
+                     "const times=['trades','burns','holders'].map(k=>snapshot[k]?.asOf||0);",
+                     "const required=['trades','holders'];"
+                     "const times=required.map(k=>snapshot[k]?.asOf).filter(n=>Number.isFinite(n)&&n>0);"
+                     "const missingSections=required.some(k=>!snapshot[k]?.asOf);",
+                     "do not require unindexed burns for freshness")
+    source = replace(source,
+                     "const asOf=Math.min(...times), minutes=Math.max(0,Math.floor((now-asOf)/60));",
+                     "const asOf=times.length?Math.min(...times):0, "
+                     "minutes=asOf?Math.max(0,Math.floor((now-asOf)/60)):0;",
+                     "minimum age of available verified trade and holder snapshots")
+    source = replace(source, "const warning=!asOf || minutes>=150 || (snapshot.errors||[]).length>0;",
+                     "const warning=!asOf || missingSections || minutes>=150 || (snapshot.errors||[]).length>0;",
+                     "show partial data coverage honestly")
+    source = replace(source,
+                     "warning?(ru?'Часть данных устарела. Ожидаем новый снимок.':'Some data is old. Waiting for a new snapshot.'):",
+                     "minutes>=150?(ru?'Данные обновляются с задержкой.':'Data refresh is delayed.'):"
+                     "(missingSections||(snapshot.errors||[]).length>0)?"
+                     "(ru?'Некоторые разделы пока не проиндексированы.':'Some sections have not been indexed yet.'):",
+                     "distinguish absent indexing from delayed refresh")
     precision = str(cfg["decimals"])
     source = replace(source, r'!/^\d{0,9}$/.test(fraction)',
                      '!/^\\d{0,' + precision + '}$/.test(fraction)',
