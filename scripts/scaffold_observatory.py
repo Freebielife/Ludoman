@@ -513,6 +513,11 @@ def scaffold(config_path, output):
                             "tokenAmount:String(project)", "generic market-cap fixture")
         if relative == "web/app.js":
             value = app_js(value, cfg)
+        if relative == "web/telegram-taste.css":
+            value += ('\nhtml[lang="ru"] #supply [lang="en"], '
+                      'html[lang="en"] #supply [lang="ru"]{display:none!important}\n')
+        if relative == "pools.py":
+            value = value.replace('"TON (TON)"', '"TON"')
         elif relative == "web/page.html":
             value = page_html(value, cfg)
         elif relative == "web/market-cap.js":
