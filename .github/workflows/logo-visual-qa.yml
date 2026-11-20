@@ -23,6 +23,7 @@ jobs:
       - name: Unit checks
         run: |
           python3 -m unittest discover -s tests -p 'test_*.py'
+          node --check web/app.js
           node --test tests/*.test.cjs
       - name: Build standalone Ludoman
         run: |

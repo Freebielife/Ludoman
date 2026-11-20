@@ -110,6 +110,27 @@ def main() -> None:
                     ) in ("none", "normal", '""')
                     assert page.locator("#feed .operationRow.trade-buy .trendMini").count() > 0
                     assert page.locator("#feed .operationRow.trade-sell .trendMini").count() > 0
+                    assert page.locator("#feed .operationRow.trade-buy .trendArrow").count() > 0
+                    assert page.locator("#feed .operationRow.trade-sell .trendArrow").count() > 0
+                    assert page.locator("#feed .operationRow.trade-buy .operationWatermark .brandTile").count() >= 3
+                    assert page.locator("#feed .operationRow.trade-sell .operationWatermark .brandTile").count() >= 3
+                    assert page.locator("#stats .statHeading .trendArrow").count() == 2
+                    assert page.locator("#stats .statFire").count() == 1
+                    assert page.locator("#market .marketChain .brandTile").count() == 3
+                    assert page.locator(".heroChain .brandTile").count() == 1
+                    assert page.locator("#activity .dexTag .brandTile").count() == 2
+                    assert page.locator("#wallets .badgeLegend dt .badgePreview").count() >= 5
+                    assert page.locator('#pools .knownPools a[href^="https://dedust.io/pools/"]').count() >= 1
+                    assert page.locator('#pools .knownPools a[href^="https://app.ston.fi/pools/"]').count() >= 1
+                    assert page.locator('#pools .knownPools a[href*="geckoterminal.com"]').count() >= 1
+                    assert page.locator("#links a.brandedLink").first.evaluate(
+                        "(a) => getComputedStyle(a, '::after').content"
+                    ) in ("none", "normal", '""')
+                    assert page.locator(".hero .introLinks a[href*='t.me']").first.evaluate(
+                        "(a) => getComputedStyle(a, '::after').content"
+                    ) in ("none", "normal", '""')
+                    assert page.locator("#views button").count() == 3
+
                     if width == 390:
                         page.locator("#activity").scroll_into_view_if_needed()
                         page.screenshot(path=str(SCREENSHOTS / "ludoman-operations-390.png"))
@@ -140,20 +161,25 @@ def main() -> None:
                         page.locator("#activity").scroll_into_view_if_needed()
                         page.screenshot(path=str(SCREENSHOTS / "ludoman-filters-390.png"))
                         page.locator("#badgeFilterToggle").click()
-                    # Only 7- and 30-day top sellers receive Paper Hands.
+                    # Only 7- and 30-day top sellers receive Best Sellers.
                     page.locator("#views button").nth(1).click()
                     page.locator("#sellerPeriods button").nth(0).click()
-                    assert page.locator("#rank .paperHands").count() == 0
+                    assert page.locator("#rank .bestSellers").count() == 0
                     page.locator("#sellerPeriods button").nth(1).click()
-                    assert page.locator("#rank .paperHands").count() == min(10, page.locator("#rank .rankingRow").count())
+                    assert page.locator("#rank .bestSellers").count() == min(10, page.locator("#rank .rankingRow").count())
                     if width == 390:
                         page.locator("#wallets").scroll_into_view_if_needed()
-                        page.screenshot(path=str(SCREENSHOTS / "ludoman-paper-hands-390.png"))
+                        page.screenshot(path=str(SCREENSHOTS / "ludoman-best-sellers-390.png"))
                     page.locator("#sellerPeriods button").nth(2).click()
-                    assert page.locator("#rank .paperHands").count() == min(10, page.locator("#rank .rankingRow").count())
+                    assert page.locator("#rank .bestSellers").count() == min(10, page.locator("#rank .rankingRow").count())
+                    page.locator("#views button").nth(2).click()
+                    assert page.locator("#sellerPeriods button").count() == 0
+                    assert page.locator("#rank .rankingRow:not(:has(.serviceWallet))").count() == 0
                     page.locator("#views button").nth(0).click()
+                    assert page.locator("#rank .rankingRow .serviceWallet").count() == 0
+
                     assert page.locator("#rank .diamondHands").count() == min(10, page.locator("#rank .rankingRow").count())
-                    assert page.locator("#rank .paperHands").count() == 0
+                    assert page.locator("#rank .bestSellers").count() == 0
                     if page.locator("#rank .diamondHands").count():
                         assert page.locator("#rank .diamondHands .walletAddress").first.evaluate(
                             "(el) => getComputedStyle(el).backgroundImage"

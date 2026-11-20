@@ -92,7 +92,14 @@ def activation(wallet):
     return None
 
 
+# User-provided CryptoCheck bot address; explicit mapping, not guessed from volume.
+KNOWN_SERVICES = {
+    "0:2d7075bcc5a3baceff8d869f9c466be6f0ee699700859811ad9da68f6aacc89a": "CryptoCheck",
+}
+
 def role(wallet, account):
+    if wallet in KNOWN_SERVICES:
+        return KNOWN_SERVICES[wallet]
     if wallet == POOL_RAW:
         return "JVault Staking Pool"
     if wallet in TONRAFFLES_LOCKS:
@@ -104,13 +111,15 @@ def role(wallet, account):
 
 def identity(snapshot, now, budget=32, pace=1.05):
     previous = snapshot.get("identity", {}).get("byWallet", {})
-    holders = snapshot.get("holders", {}).get("holders", [])[:20]
+    holders = snapshot.get("holders", {}).get("holders", [])[:100]
     rows = snapshot.get("trades", {}).get("rows", [])[:50] + snapshot.get("burns", {}).get("rows", [])[:50] + snapshot.get("zeroBurns", {}).get("rows", [])[:50]
     visible = list(dict.fromkeys(r["wallet"] for r in holders[:5] + rows + holders[5:]))
-    top = {r["wallet"] for r in holders[:5]}
+    top = {r["wallet"] for r in holders[:30]}
     records = {w: dict(r) for w, r in previous.items()}
     for w in visible:
         records.setdefault(w, {})
+        if w in KNOWN_SERVICES:
+            records[w]["role"] = KNOWN_SERVICES[w]
     queue = sorted(visible, key=lambda w: (w not in top, records[w].get("checked", 0)))
     checks = 0
     for wallet in queue:
@@ -123,7 +132,7 @@ def identity(snapshot, now, budget=32, pace=1.05):
         try:
             account = fetch(f"/accounts/{wallet}", attempts=2)
             time.sleep(pace)
-            label = role(wallet, account) if wallet in top else record.get("role")
+            label = role(wallet, account)
             names = fetch(f"/accounts/{wallet}/dns/backresolve", attempts=2)["domains"] if account["is_wallet"] else []
             domain = None
             linked_digits = []
