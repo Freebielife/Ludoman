@@ -859,6 +859,9 @@ def scaffold(config_path, output):
         dest = output / relative
         dest.parent.mkdir(parents=True, exist_ok=True)
         value = src.read_text()
+        # Owner-assigned wallet accents are private to the source project.
+        value = re.sub(r'/\* PROJECT-ONLY:START \*/.*?/\* PROJECT-ONLY:END \*/',
+                       '', value, flags=re.S)
         if relative == "web/snapshot-loader.js":
             value = replace(value, "Freebielife/Ludoman",
                             cfg["github"]["owner"] + "/" + cfg["github"]["repo"],

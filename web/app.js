@@ -303,10 +303,36 @@ const projectBadgeDefs=[
   ["napiwas","NAPIWAS","https://t.me/NAPIWASofficial"],
   ["blueNft","","https://getgems.io/collection/EQBmoucipH0QT_qpd361W-9zUlyFsSl1FD1GIY0AfXdpPQW8"]
 ];
+/* PROJECT-ONLY:START */
+// This owner-assigned label belongs exclusively to Ludoman, never the factory.
+const ludomanDevWallet="UQD5p2Uq4b4KjKxMkivHMqP8verJ0Gl_Uegim0WKyRduBHBa";
+function isLudomanDev(wallet){
+  return MASTER==="EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb"
+    && rawLookupAddress(wallet)===rawLookupAddress(ludomanDevWallet);
+}
+function decorateLudomanDev(card,wallet){
+  if(!isLudomanDev(wallet))return;
+  card.classList.add("ludomanDev");
+  card.querySelector(".operationWatermark")?.remove();
+  const watermark=el("div",undefined,"devWatermark"+(card.classList.contains("operationRow")?" operationWatermark":""));
+  watermark.setAttribute("aria-hidden","true");
+  for(let i=0;i<5;i++)watermark.append(el("span","DEV"));
+  card.prepend(watermark);
+}
+/* PROJECT-ONLY:END */
 function appendProjectBadges(wrapper,wallet,verifiedDomain,ownsFragment){
   const data=snapshot.badges?.sources;
   const identity=snapshot.identity?.byWallet?.[wallet];
   const badges=el("span",undefined,"projectBadges");
+  /* PROJECT-ONLY:START */
+  if(isLudomanDev(wallet)){
+    const badge=el("span",undefined,"projectBadge ludomanDevBadge");
+    badge.append(el("span","DEV"));
+    badge.title=lang==="ru"?"Кошелёк разработчика Ludoman · метка владельца сайта":"Ludoman developer wallet · site owner label";
+    badge.setAttribute("aria-label","DEV · "+badge.title);
+    badges.append(badge);
+  }
+  /* PROJECT-ONLY:END */
   if(identity?.activated){
     const date=new Date(identity.activated*1000);
     const fifth=new Date(date);
@@ -515,6 +541,9 @@ function renderLookup(){
  $("walletQuery").setAttribute("aria-label",t("walletPlaceholder"));
  $("walletFind").textContent=t("walletFind");
  const target=$("walletResult");target.replaceChildren();
+ /* PROJECT-ONLY:START */
+ target.classList.remove("ludomanDev");
+ /* PROJECT-ONLY:END */
  if(!lookupResult){target.hidden=true;return}
  target.hidden=false;
  const {wallet,name,balance,status,ownsFragment}=lookupResult;
@@ -529,6 +558,9 @@ function renderLookup(){
  const holding=el("p",value==null?t("walletBalanceUnknown"):t("walletBalance")+": "+format(value,4)+" LUDOMAN");
  if(balance==null&&holder)holding.append(" · "+stamp(snapshot.holders.asOf));
  target.append(holding);
+ /* PROJECT-ONLY:START */
+ decorateLudomanDev(target,wallet);
+ /* PROJECT-ONLY:END */
  if(rank>=0){
    const entry=el("p",t("walletTop")+" ");
    entry.append(rankPosition(rank,snapshot.holders.previousRanks?.[wallet]));
@@ -726,6 +758,9 @@ function row(first,sub,value,last){const a=el("div"),b=el("div"),d=el("div",unde
 
 /* Shared badge definitions: the same keys drive labels, filters and future observatories. */
 const badgeFilterDefs=[
+ /* PROJECT-ONLY:START */
+ ["dev","DEV"],
+ /* PROJECT-ONLY:END */
  ["og","OG"],["fragmentNumber","+888"],["digits","0000.ton"],
  ["author","author NFT"],["staking","JVault"],["vnuk","VNUK"],
  ["joystick","Joystick"],["phoenix","Phoenix"],["arni","ARNI"],
@@ -733,6 +768,9 @@ const badgeFilterDefs=[
 ];
 const selectedBadgeFilters=new Set();
 function hasWalletBadge(wallet,key){
+ /* PROJECT-ONLY:START */
+ if(key==="dev")return isLudomanDev(wallet);
+ /* PROJECT-ONLY:END */
  if(key==="digits")return numericDomains(wallet).names.length>0;
  if(key==="fragmentNumber"){
    const item=snapshot.fragmentNumbers?.byWallet?.[wallet];
@@ -815,6 +853,9 @@ function list(){
      for(let i=0;i<5;i++)watermark.append(brandMarkNode("ludoman"));
      item.prepend(watermark);
    }
+   /* PROJECT-ONLY:START */
+   decorateLudomanDev(item,r.wallet);
+   /* PROJECT-ONLY:END */
    return item;
  }));
  if(!combined.length)$("feed").append(el("p",t(large?"noLargeTrades":$("feedDomains").checked||selectedBadgeFilters.size?"noneTagged":"none"),"empty"));
@@ -869,6 +910,9 @@ function ranks(){
      entry.classList.add("bestSellers");
      entry.firstElementChild.prepend(el("span","🔁 Best Sellers","rankHonor bestHonor"));
    }
+   /* PROJECT-ONLY:START */
+   decorateLudomanDev(entry,r.wallet);
+   /* PROJECT-ONLY:END */
    return entry;
  }));
  if(!data.length)$("rank").append(el("p",source?t("none"):t("no"),"empty"));
