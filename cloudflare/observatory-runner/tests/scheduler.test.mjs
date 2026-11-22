@@ -32,7 +32,7 @@ test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
   assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects).map(p=>p.id), ["tac"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman", "mem"]);
   assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", projects).map(p=>p.id), ["tac"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects).map(p=>p.id), ["arbuz"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects).map(p=>p.id), ["arbuz", "notcoin"]);
 });
 
 test("disabled project cannot be dispatched", () => {
@@ -184,13 +184,42 @@ test("ARBUZ uses :20/:50 and dispatches its own workflow", async () => {
     workflow:"update.yml",ref:"main",everyMinutes:30,phaseMinutes:20,enabled:true});
   for (const minute of [20, 50]) {
     const at = `2026-11-20T20:${minute}:00Z`;
-    assert.deepEqual(selectDueProjects(at).map(p => p.id), ["arbuz"]);
+    assert.deepEqual(selectDueProjects(at).map(p => p.id), ["arbuz", "notcoin"]);
     const requests = [];
     assert.deepEqual(await dispatchDue({scheduledTime:at,token:"fixture-token",
-      fetcher:async (url,init) => {requests.push({url,init});return {ok:true,status:204}}}), ["arbuz"]);
-    assert.equal(requests.length,1);
+      fetcher:async (url,init) => {requests.push({url,init});return {ok:true,status:204}}}), ["arbuz", "notcoin"]);
+    assert.equal(requests.length,2);
     assert.equal(requests[0].url,
       "https://api.github.com/repos/Freebielife/ARBUZ/actions/workflows/update.yml/dispatches");
+    assert.equal(requests[1].url,
+      "https://api.github.com/repos/Freebielife/Notcoin/actions/workflows/update.yml/dispatches");
     assert.deepEqual(JSON.parse(requests[0].init.body),{ref:"main"});
+  }
+});
+
+test("Notcoin is enabled at :20/:50 UTC with an isolated workflow dispatch", async () => {
+  const notcoin = projects.find(p => p.id === "notcoin");
+  assert.deepEqual({...notcoin}, {
+    id: "notcoin", owner: "Freebielife", repo: "Notcoin",
+    workflow: "update.yml", ref: "main", everyMinutes: 30,
+    phaseMinutes: 20, enabled: true
+  });
+  for (const minute of [20, 50]) {
+    const calls = [];
+    const at = `2026-11-22T13:${minute}:00Z`;
+    const result = await dispatchDue({
+      scheduledTime: at,
+      token: "synthetic-token",
+      registry: [notcoin],
+      fetcher: async (url, init) => {
+        calls.push({url, init});
+        return {ok: true, status: 204};
+      }
+    });
+    assert.deepEqual(result, ["notcoin"]);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url,
+      "https://api.github.com/repos/Freebielife/Notcoin/actions/workflows/update.yml/dispatches");
+    assert.deepEqual(JSON.parse(calls[0].init.body), {ref: "main"});
   }
 });
