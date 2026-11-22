@@ -1,5 +1,18 @@
 # Ludoman Observatory
 
+## О проекте / токене
+
+LUDOMAN (1000Ludoman) — мем-токен в сети TON, ориентированный на игровое сообщество. По официальному сайту и метаданным проект стремится объединять игроков Web2 и Web3 через участие в жизни сообщества, конкурсы и совместные активности.
+
+Контракт в TON: `EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb`.
+
+Описание составлено по первичным источникам проекта и метаданным контракта. Проверено: **2026-11-22**.
+
+Источники:
+
+- <https://1000ludoman.xyz/>
+- <https://tonapi.io/v2/jettons/EQDbKihXMZuNfl7m7VcNrHIyYYYgCFPhccIqNN_ocNn-PBCb>
+
 > **Общая основа вынесена:** новые обсерватории создаём из
 > [TON-Observatory-Template](https://github.com/Freebielife/TON-Observatory-Template).
 > Этот репозиторий — самостоятельный проект Ludoman. Его оформление, DEV-метка и
