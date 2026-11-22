@@ -1,4 +1,13 @@
-# TON Observatory factory
+# Ludoman project
+
+The canonical shared factory has moved to https://github.com/Freebielife/TON-Observatory-Template.
+For every NEW token observatory, start from that independent repository and its
+AGENTS.md. Do not use Ludoman's live source as the factory. The local factory
+scripts remain for historical compatibility and do not synchronize automatically.
+
+Ludoman may be customized independently, including its project-only DEV badge.
+Never propagate those settings into the shared template or other token projects.
+Do not change KITO without a separate request.
 
 For every new observatory, follow docs/BRANDING_STANDARD.md before generation:
 
