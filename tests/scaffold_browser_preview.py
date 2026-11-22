@@ -48,6 +48,9 @@ def main():
     badge_icon.write_bytes(base64.b64decode(
         "R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="))
     cfg["background_file"] = "background.webp"
+    cfg.update(logo_file="background.webp", logo_origin="project_website",
+               logo_source="https://example.org/logo.webp", flag_emoji="🍉")
+    cfg["links"]["telegram"] = "https://t.me/example_project"
     cfg["badges"] = [{
         "id": "testbadge", "label": "Test Badge",
         "description_ru": "Проверка NFT", "description_en": "Verified NFT",
@@ -80,7 +83,7 @@ def main():
             assert page.locator("#wallets .badgeLegend dt[data-project-badge='testbadge'] img").count() == 1
             assert page.locator("#badgeFilterList .badgeFilterItem").count() == 5
             assert page.locator("#badgeFilterList .badgeFilterItem img").count() == 1
-            assert page.locator(".hero .introLinks a[href^='https://t.me/']").count() == 0
+            assert page.locator(".hero .introLinks a[href^='https://t.me/']").count() == 1
             assert page.evaluate("getComputedStyle(document.body).backgroundImage").find("image/webp") >= 0
             assert page.locator('#pools a[href^="https://dedust.io/pools/"]').count() == 1
             assert page.locator('#pools a[href^="https://app.ston.fi/pools/"]').count() == 1

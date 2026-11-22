@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 from scripts.build_common_flags import build_common_atlas
 from scripts.foundation import install as install_foundation
+from scripts.project_branding import validate_config as validate_branding, install as install_branding, BrandingError
 
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
@@ -200,6 +201,10 @@ def read_config(path):
             else:
                 raise ProjectError("Unsupported badge proof: use jetton_min or nft_collection")
     cfg["_badge_icons"] = badge_icons
+    try:
+        validate_branding(cfg, path.parent, ROOT / "assets/icon-pack/approved-brand-atlas.json")
+    except BrandingError as error:
+        raise ProjectError(str(error)) from error
     return cfg
 
 
@@ -999,6 +1004,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
     if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp", "project-background.webp"}:
         raise ProjectError("Foreign token artwork survived the build")
     install_foundation(output, cfg)
+    install_branding(output, cfg, ROOT / "assets/icon-pack/approved-brand-atlas.json")
     return output
 
 

@@ -6,7 +6,7 @@ import os
 import re
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 DEFAULT_MAX_HTML_BYTES = 2_500_000
 
 
@@ -44,6 +44,16 @@ def publish_html(root, result, snapshot):
     root = Path(root)
     project = read_project(root)
     check_identity(snapshot, project)
+    if project.get("engine_version") == VERSION:
+        branding = project.get("branding", {})
+        if not all(branding.get(key) for key in ("hero", "sectionFlag", "channel")):
+            raise ValueError("Official logo, confirmed section flag and project channel are required")
+        if (branding["channel"] != project.get("links", {}).get("telegram") or
+                branding["hero"]["source"] != project.get("logo_source") or
+                branding["hero"]["origin"] != project.get("logo_origin")):
+            raise ValueError("Branding configuration changed; regenerate the project")
+        if not (root / branding["hero"]["file"]).is_file():
+            raise ValueError("Official hero logo file missing")
     size = len(result.encode("utf-8"))
     limit = project.get("max_html_bytes", DEFAULT_MAX_HTML_BYTES)
     if type(limit) is not int or not 250_000 <= limit <= 5_000_000:
