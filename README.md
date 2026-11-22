@@ -40,3 +40,7 @@ python3 scripts/scaffold_observatory.py --config /path/to/new-token.json --outpu
 ```
 
 Схема конфигурации, проверки и ограничения: [docs/NEW_PROJECT_FACTORY.md](docs/NEW_PROJECT_FACTORY.md). До проверки контрактов новый проект не получает вымышленные показатели стейкинга или APR.
+
+## Reusable foundation 1.0.0
+
+New sites use the contract-driven generator described in [FOUNDATION_V1.md](docs/FOUNDATION_V1.md). It generates isolated sources, collects data and verifies one standalone HTML. Holders start at 10 and expand to top 20. Existing Ludoman and KITO outputs are not migrated by these factory changes.
