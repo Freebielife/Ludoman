@@ -36,8 +36,8 @@ export const projects = Object.freeze([
     phaseMinutes: 20,
     enabled: true
   }),
-  // NOT is staged but not dispatched until the owner grants this repository
-  // to the shared Cloudflare GitHub token and enables public snapshot access.
+  // Notcoin public repo authorized by the owner (2026-11-22).
+  // Cloudflare deployment and successful dispatch require live verification.
   Object.freeze({
     id: "notcoin",
     owner: "Freebielife",
@@ -46,7 +46,7 @@ export const projects = Object.freeze([
     ref: "main",
     everyMinutes: 30,
     phaseMinutes: 20,
-    enabled: false
+    enabled: true
   }),
   Object.freeze({
     id: "mem",
