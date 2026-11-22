@@ -16,11 +16,12 @@ import shutil
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 from scripts.build_common_flags import build_common_atlas
+from scripts.foundation import install as install_foundation
 
 ROOT = Path(__file__).resolve().parents[1]
 DEXES = {"stonfi": ("STON.fi", "ston", "https://app.ston.fi"),
          "dedust": ("DeDust", "dedust", "https://dedust.io")}
-CORE = ("trade_history.py", "tests/test_trade_history.py", "service_registry.py", "common-services.json", "tests/test_service_registry.py", "assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
+CORE = ("scripts/project_runtime.py", "trade_history.py", "tests/test_trade_history.py", "service_registry.py", "common-services.json", "tests/test_service_registry.py", "assets.py", "trades.py", "pools.py", "collect.py", "domains.py",
         "verify.py", "web/app.js", "web/page.html", "web/style.css",
         "web/telegram-taste.css", "web/market-cap.js", "web/snapshot-loader.js",
         "scripts/icon_pack.py", "scripts/publish_snapshot.py",
@@ -96,7 +97,9 @@ def read_config(path):
         raise ProjectError("Token symbol must use ASCII capitals, digits or underscores")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 -]{0,45}", name):
         raise ProjectError("Name may not contain markup")
-    raw_address(require(cfg, "master"))
+    from scripts.project_runtime import canonical_address
+    canonical_address(require(cfg, "master"))
+    raw_address(cfg["master"])
     decimals = cfg.get("decimals")
     if type(decimals) is not int or not 0 <= decimals <= 18:
         raise ProjectError("Token decimals must be independently verified (0..18)")
@@ -109,13 +112,16 @@ def read_config(path):
     if not 1 <= len(pools) <= 20:
         raise ProjectError("One or more confirmed native TON pools are required")
     addresses = set()
+    canonical_pools = set()
     for pool in pools:
         if not isinstance(pool, dict):
             raise ProjectError("Invalid pool definition")
         address = require(pool, "address")
         raw_address(address)
-        if address in addresses:
+        normalized_pool = canonical_address(address)
+        if normalized_pool in canonical_pools:
             raise ProjectError("Duplicate pool")
+        canonical_pools.add(normalized_pool)
         addresses.add(address)
         if pool.get("dex") not in DEXES or pool.get("quote") != "TON":
             raise ProjectError("Only direct native TON pools on STON.fi or DeDust are supported")
@@ -134,8 +140,14 @@ def read_config(path):
     services = cfg.get("services", {})
     if not isinstance(services, dict):
         raise ProjectError("services must be an address-to-name dictionary")
-    cfg["_services"] = {raw_address(address): require({"name": title}, "name")
-                        for address, title in services.items()}
+    shared_overrides = json.loads((ROOT / "service-overrides.json").read_text())
+    shared_services = {address: item["name"] for address, item in shared_overrides.items()}
+    cfg["services"] = {**shared_services, **services}
+    cfg["service_provenance"] = {
+        canonical_address(address): {"category": item["category"], "source": item["source"]}
+        for address, item in shared_overrides.items() if address not in services}
+    cfg["_services"] = {canonical_address(address): require({"name": title}, "name")
+                        for address, title in cfg["services"].items()}
     if cfg.get("logo_file"):
         cfg["_logo"] = local_image(path.parent, cfg["logo_file"], "logo_file", {".webp"}, 150000)
     if cfg.get("background_file"):
@@ -986,6 +998,7 @@ html[lang="ru"] .customBadgeDescription [lang="en"] {display:none!important}
             raise ProjectError("Foreign-project reference survived: " + relative)
     if set(p.name for p in (output / "web").glob("*.webp")) - {"project-logo.webp", "project-background.webp"}:
         raise ProjectError("Foreign token artwork survived the build")
+    install_foundation(output, cfg)
     return output
 
 
