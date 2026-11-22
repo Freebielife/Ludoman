@@ -43,6 +43,11 @@ class ScaffoldTests(unittest.TestCase):
             "services": {friendly(99): "Verified example service"}
         }
 
+        (self.base / "official-logo.webp").write_bytes(base64.b64decode(
+            "UklGRi4AAABXRUJQVlA4ICIAAABwAQCdASoEAAQAAoBCJYwCdAFAAAD+9w1pV6vMptIhvQAA"))
+        self.config.update(logo_file="official-logo.webp", logo_origin="token_metadata",
+                             logo_source="https://example.org/token-logo.webp", flag_emoji="🍉")
+
     def save(self):
         self.config_path.write_text(json.dumps(self.config))
 
@@ -80,7 +85,7 @@ class ScaffoldTests(unittest.TestCase):
         self.assertNotIn("LUDOMAN", page)
         self.assertNotIn("1000ludoman.xyz", page)
         self.assertNotIn("CryptoCheck", (self.out / "observatory.py").read_text())
-        self.assertEqual(list((self.out / "web").glob("*.webp")), [])
+        self.assertEqual([p.name for p in (self.out / "web").glob("*.webp")], ["project-logo.webp"])
         self.assertNotIn("socool.ton", (self.out / "assets.py").read_text())
         self.assertNotIn("JVault", app)
         self.assertNotIn("VNUK", app)

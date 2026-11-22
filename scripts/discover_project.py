@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 from assets import fetch
 from scripts.project_runtime import VERSION, canonical_address
+from scripts.project_branding import prepare as prepare_branding
 
 GECKO = "https://api.geckoterminal.com/api/v2"
 NATIVE = "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
@@ -83,7 +84,7 @@ def discover(master, owner, repo, *, read=fetch):
     return {"slug": re.sub(r"[^a-z0-9-]", "-", repo.lower()), "name": name, "symbol": symbol,
             "master": master, "decimals": decimals, "github": {"owner": owner, "repo": repo},
             "pools": pools, "primary_pool": pools[0]["address"], "links": {}, "services": {},
-            "engine_version": VERSION, "discovery": {"checkedAt": int(time.time()), "sources": sources,
+            "_metadata_image": meta.get("image"), "engine_version": VERSION, "discovery": {"checkedAt": int(time.time()), "sources": sources,
                 "primaryPoolPolicy": "largest indexed USD liquidity among swap-verified supported TON pools"}}
 
 
@@ -93,6 +94,12 @@ def main():
     parser.add_argument("--github", required=True, help="owner/repository for snapshot updates")
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--prepare-only", action="store_true", help="Generate sources without live collection/build")
+    parser.add_argument("--website", help="Official project website for fallback logo/channel discovery")
+    parser.add_argument("--channel", help="Project channel, https://t.me/channel")
+    flags = parser.add_mutually_exclusive_group(required=True)
+    flags.add_argument("--flag-key", help="Explicitly confirmed key in the bundled flag catalogue")
+    flags.add_argument("--flag-file", type=Path, help="User-provided custom emoji image, WebP/GIF")
+    flags.add_argument("--flag-emoji", help="Explicitly chosen Unicode emoji")
     args = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9-]{1,39}/[A-Za-z0-9_.-]{2,31}", args.github):
         parser.error("Expected owner/repository")
@@ -103,7 +110,11 @@ def main():
         import tempfile
         from scripts.scaffold_observatory import scaffold
         with tempfile.TemporaryDirectory() as directory:
-            config = Path(directory) / "project.json"
+            directory = Path(directory)
+            prepare_branding(cfg, directory, metadata_image=cfg.pop("_metadata_image", None),
+                             website=args.website, channel=args.channel, flag_key=args.flag_key,
+                             flag_file=args.flag_file, flag_emoji=args.flag_emoji)
+            config = directory / "project.json"
             config.write_text(json.dumps(cfg, ensure_ascii=False))
             scaffold(config, args.output)
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:

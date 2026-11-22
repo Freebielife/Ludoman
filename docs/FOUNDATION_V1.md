@@ -1,4 +1,4 @@
-# TON Observatory foundation 1.0.0
+# TON Observatory foundation 1.1.0
 
 The factory is the reusable product. Token-specific Ludoman collectors, artwork,
 HTML and snapshots remain unchanged. KITO is outside this migration.
@@ -11,6 +11,8 @@ From the factory repository:
 python3 -m scripts.discover_project \
   --token TOKEN_CONTRACT \
   --github OWNER/REPOSITORY \
+  --channel https://t.me/PROJECT_CHANNEL \
+  --flag-file /absolute/path/to/approved-emoji.webp \
   --output /absolute/path/to/new-site
 ```
 
@@ -20,7 +22,11 @@ matching TON swap in the candidate pool's TonAPI event feed. It chooses the
 largest indexed USD liquidity among supported, swap-verified pools as the primary
 chart source. This is indexed event evidence, not an independent contract audit.
 
-It generates sources and project.json, refreshes on-chain sections, builds
+The official hero logo is downloaded from token metadata, with `--website` for
+fallback logo and channel discovery from the project's website. The section flag
+must be explicitly selected with one of `--flag-key`, `--flag-file`, `--flag-emoji`.
+A missing logo, channel or flag blocks setup and identifies the required input.
+See BRANDING_STANDARD.md. It generates sources and project.json, refreshes on-chain sections, builds
 index.html and verifies the bundle. `--prepare-only` skips collection/build.
 Only native TON pairs on STON.fi and DeDust are supported by the trade collector.
 Other discovered pairs may be listed separately; their swaps are not claimed as

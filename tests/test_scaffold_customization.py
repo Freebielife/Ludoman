@@ -30,6 +30,11 @@ class CustomizationTests(unittest.TestCase):
             "links": {"telegram": "https://t.me/example"},
         }
 
+        (self.base / "official-logo.webp").write_bytes(base64.b64decode(
+            "UklGRi4AAABXRUJQVlA4ICIAAABwAQCdASoEAAQAAoBCJYwCdAFAAAD+9w1pV6vMptIhvQAA"))
+        self.cfg.update(logo_file="official-logo.webp", logo_origin="token_metadata",
+                             logo_source="https://example.org/token-logo.webp", flag_emoji="🍉")
+
     def save(self):
         self.config_path.write_text(json.dumps(self.cfg))
 
@@ -45,11 +50,15 @@ class CustomizationTests(unittest.TestCase):
         self.assertNotIn('"project-currency"', app)
         self.assertIn("observatory-sampletoken-", app)
 
-        # Omitted Telegram link means no hero button or inherited project URL.
+        # A missing channel must block setup; a different token keeps isolated settings.
         self.cfg["links"].pop("telegram")
         self.cfg["master"] = friendly(55)
         self.save()
         other_site = self.base / "other"
+        with self.assertRaises(ProjectError):
+            scaffold(self.config_path, other_site)
+        self.cfg["links"]["telegram"] = "https://t.me/another_project"
+        self.save()
         scaffold(self.config_path, other_site)
         other = (other_site / "web/page.html").read_text()
         other_js = (other_site / "web/app.js").read_text()
