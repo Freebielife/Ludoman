@@ -5,6 +5,7 @@ const texts = {
     "navLiquidity":"🔁 Торговые пулы","navSupply":"❄️ Заморозка и 🔒 стейкинг","filterButton":"Фильтр", "filterByBadges":"Метки кошельков", "filterReset":"Сбросить",
     "filterHint":"При выборе нескольких меток показываются кошельки, имеющие все выбранные метки.",
     "filterSearchPlaceholder":"Найти метку…",
+    "filterDex":"Биржа обмена", "filterAllDex":"Все биржи",
     "volumeTitle": "Объём сделок",
     "volumeEmpty": "За этот период сделки не найдены",
     "largeTrades": "Крупные сделки",
@@ -117,6 +118,7 @@ const texts = {
     "navLiquidity":"🔁 Trading pools","navSupply":"❄️ Locks and 🔒 staking","filterButton":"Filter", "filterByBadges":"Wallet badges", "filterReset":"Reset",
     "filterHint":"Selecting multiple badges shows wallets that have all selected badges.",
     "filterSearchPlaceholder":"Search badges…",
+    "filterDex":"Swap exchange", "filterAllDex":"All exchanges",
     "volumeTitle": "Trade volume",
     "volumeEmpty": "No trades found for this period",
     "largeTrades": "Large trades",
@@ -226,7 +228,12 @@ const texts = {
     "noneTagged": "No records from verified domain holders match this filter."
   }
 };
-let feedKind="all";
+let feedKind="all", feedDex="all";
+const tradeVenues=[{key:"ston",label:"STON.fi"},{key:"dedust",label:"DeDust"}];
+function tradeVenue(row){
+ if(row.kind!=="buy"&&row.kind!=="sell")return null;
+ return tradeVenues.find(venue=>venue.label===row.dex)||null;
+}
 const $=id=>document.getElementById(id);
 let snapshot=JSON.parse($("snapshot").textContent), lang="ru", period=1, ranking="holders", sellerDays=1, expanded=false, currency="GRAM";
 let syncState={phase:"idle",checkedAt:0};
@@ -808,11 +815,16 @@ function listOperations(){list();}
 function list(){
  const kinds=["all","buy","sell","burn"];
  select("filters",[t("filterAll"),t("buys"),t("sells"),t("burnCount")],kinds.indexOf(feedKind),i=>{feedKind=kinds[i];expanded=false;list()});
+ const venues=["all",...tradeVenues.map(venue=>venue.key)];
+ $("dexFilters").setAttribute("aria-label",t("filterDex"));
+ select("dexFilters",[t("filterAllDex"),...tradeVenues.map(venue=>venue.label)],venues.indexOf(feedDex),i=>{feedDex=venues[i];expanded=false;list()});
+ tradeVenues.forEach((venue,i)=>$("dexFilters").children[i+1].prepend(brandMarkNode(venue.key)));
  renderBadgeFilterList();
  const large=$("largeTrades").checked,threshold=$("minTradeSize").valueAsNumber;
  $("minTradeSize").disabled=!large;
  const combined=[...(snapshot.trades?.rows||[]),...burnRows()]
   .filter(r=>!large||(r.kind!=="burn"&&Number.isFinite(threshold)&&threshold>=0&&Number(r.ton)>=threshold))
+  .filter(r=>feedDex==="all"||tradeVenue(r)?.key===feedDex)
   .filter(r=>(feedKind==="all"||r.kind===feedKind)
     &&(!$("feedDomains").checked||hasDomainBadge(r.wallet))
     &&[...selectedBadgeFilters].every(key=>hasWalletBadge(r.wallet,key)))
@@ -829,7 +841,17 @@ function list(){
    if(r.kind==="buy"||r.kind==="sell"){
      titleGroup.append(trendMark(r.kind));
    }
-   header.append(titleGroup,date);
+   const metadata=el("div",undefined,"opMetadata");
+   const venue=tradeVenue(r);
+   if(venue){
+     const exchange=el("span",undefined,"opDex");
+     exchange.dataset.dex=venue.key;
+     exchange.title=t("filterDex")+": "+venue.label;
+     exchange.append(brandMarkNode(venue.key),el("span",venue.label));
+     metadata.append(exchange);
+   }
+   metadata.append(date);
+   header.append(titleGroup,metadata);
    const amounts=el("div",undefined,"opAmounts");
    const token=el("div",undefined,"opAmount opToken");
    token.append(el("strong",format(r.ludoman),"opAmountValue"),el("small","LUDOMAN","opAmountUnit"));
@@ -1148,7 +1170,7 @@ $("badgeFilterToggle").onclick=()=>{
 $("badgeFilterSearch").oninput=renderBadgeFilterList;
 $("clearBadgeFilters").onclick=()=>{
  selectedBadgeFilters.clear();$("badgeFilterSearch").value="";
- $("feedDomains").checked=false;$("largeTrades").checked=false;
+ $("feedDomains").checked=false;$("largeTrades").checked=false;feedDex="all";
  expanded=false;list();
 };
 window.addEventListener("resize",chart);render();

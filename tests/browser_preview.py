@@ -131,6 +131,31 @@ def main() -> None:
                     ) in ("none", "normal", '""')
                     assert page.locator("#views button").count() == 3
 
+                    # Venue filters must combine with transaction kinds before pagination.
+                    for index, label in ((1, "STON.fi"), (2, "DeDust")):
+                        page.locator("#dexFilters button").nth(index).click()
+                        assert page.locator("#feed .opDex").count() == 10
+                        assert set(page.locator("#feed .opDex").all_text_contents()) == {label}
+                        assert page.locator("#feed .opDex .brandTile").count() == 10
+                        page.locator("#more").click()
+                        assert page.locator("#feed .operationRow").count() == 50
+                        assert set(page.locator("#feed .opDex").all_text_contents()) == {label}
+                    page.locator("#filters button").nth(2).click()
+                    assert page.locator("#feed .operationRow:not(.trade-sell)").count() == 0
+                    assert set(page.locator("#feed .opDex").all_text_contents()) == {"DeDust"}
+                    page.locator("#filters button").nth(3).click()
+                    assert page.locator("#feed .operationRow").count() == 0
+                    page.locator("#dexFilters button").nth(0).click()
+                    assert page.locator("#feed .opDex").count() == 0
+                    page.locator("#filters button").nth(0).click()
+                    page.locator("#badgeFilterToggle").click()
+                    page.locator("#dexFilters button").nth(2).click()
+                    page.locator("#clearBadgeFilters").click()
+                    assert page.locator("#dexFilters button").nth(0).get_attribute("aria-pressed") == "true"
+                    page.locator("#badgeFilterToggle").click()
+                    sizes = page.evaluate("({viewport:innerWidth,scroll:document.documentElement.scrollWidth})")
+                    assert sizes["scroll"] <= sizes["viewport"] + 2, sizes
+
                     if width == 390:
                         page.locator("#activity").scroll_into_view_if_needed()
                         page.screenshot(path=str(SCREENSHOTS / "ludoman-operations-390.png"))
