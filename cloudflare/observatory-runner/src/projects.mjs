@@ -58,4 +58,11 @@ export const projects = Object.freeze([
     phaseMinutes: 0,
     enabled: true
   })
+,
+  // MAJOR: flag 003; production dispatch and token access require verification.
+  Object.freeze({
+    id: "major", owner: "Freebielife", repo: "Major",
+    workflow: "update.yml", ref: "main",
+    everyMinutes: 30, phaseMinutes: 10, enabled: true
+  })
 ]);
