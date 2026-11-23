@@ -20,7 +20,8 @@ test("Ludoman fires at :00 and :30 UTC, with future projects offset", () => {
 });
 
 test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
-  const tac=projects.find(p=>p.id==="tac");
+  const registry = projects.filter(p=>["ludoman","tac","mem","arbuz","notcoin"].includes(p.id));
+  const tac=registry.find(p=>p.id==="tac");
   assert.ok(tac);
   assert.equal(tac.owner,"Freebielife");
   assert.equal(tac.repo,"Freebielife-TAC-Observatory");
@@ -29,10 +30,10 @@ test("TAC is enabled at :10/:40 UTC without changing Ludoman's :00/:30", () => {
   assert.equal(tac.everyMinutes,30);
   assert.equal(tac.phaseMinutes,10);
   assert.equal(tac.enabled,true);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", projects).map(p=>p.id), ["tac"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", projects).map(p=>p.id), ["ludoman", "mem"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", projects).map(p=>p.id), ["tac"]);
-  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", projects).map(p=>p.id), ["arbuz", "notcoin"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:10:00Z", registry).map(p=>p.id), ["tac"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:30:00Z", registry).map(p=>p.id), ["ludoman", "mem"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:40:00Z", registry).map(p=>p.id), ["tac"]);
+  assert.deepEqual(selectDueProjects("2026-11-20T13:50:00Z", registry).map(p=>p.id), ["arbuz", "notcoin"]);
 });
 
 test("disabled project cannot be dispatched", () => {
@@ -80,6 +81,7 @@ test("Cloudflare TAC dispatch uses the correct GitHub workflow and requires acti
   const result = await dispatchDue({
     scheduledTime: "2026-11-20T13:10:00Z",
     token: "synthetic-test-secret",
+    registry: projects.filter(p=>p.id==="tac"),
     fetcher: async (url, init) => {
       requests.push({url,init});
       return {ok:true,status:204};
@@ -222,4 +224,18 @@ test("Notcoin is enabled at :20/:50 UTC with an isolated workflow dispatch", asy
       "https://api.github.com/repos/Freebielife/Notcoin/actions/workflows/update.yml/dispatches");
     assert.deepEqual(JSON.parse(calls[0].init.body), {ref: "main"});
   }
+});
+
+
+test("LAMBO dispatches its isolated workflow at :10 and :40 UTC", async () => {
+  const registry=projects.filter(p=>p.id==="lambo");
+  assert.equal(registry.length,1);
+  const calls=[];
+  for (const time of ["2026-11-23T21:10:00Z","2026-11-23T21:40:00Z"]) {
+    assert.deepEqual(await dispatchDue({scheduledTime:time,token:"test-secret",registry,
+      fetcher:async (url,init)=>{calls.push({url,init});return {ok:true,status:204};}}),["lambo"]);
+  }
+  assert.equal(selectDueProjects("2026-11-23T21:20:00Z",registry).length,0);
+  assert.ok(calls.every(c=>c.url==="https://api.github.com/repos/Freebielife/Lambo/actions/workflows/update.yml/dispatches"));
+  assert.ok(calls.every(c=>JSON.parse(c.init.body).ref==="main"));
 });

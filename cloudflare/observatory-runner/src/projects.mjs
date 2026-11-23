@@ -65,4 +65,11 @@ export const projects = Object.freeze([
     workflow: "update.yml", ref: "main",
     everyMinutes: 30, phaseMinutes: 10, enabled: true
   })
+,
+  // LAMBO: token access and live Cloudflare dispatch require verification.
+  Object.freeze({
+    id: "lambo", owner: "Freebielife", repo: "Lambo",
+    workflow: "update.yml", ref: "main",
+    everyMinutes: 30, phaseMinutes: 10, enabled: true
+  })
 ]);
